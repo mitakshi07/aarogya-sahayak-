@@ -1,0 +1,5007 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aarogya-Sahayak - Medical Translator</title>
+
+    <!-- Bootstrap CSS for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome for icons -->
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Add these before your closing </body> tag -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+  // Replace with your actual Firebase config
+ const firebaseConfig = {
+apiKey: "AIzaSyCvdN34Te-32rWF3FmVvZp9P1CrOhybRq4",
+authDomain: "aarogya-sahayak-b8f35.firebaseapp.com",
+projectId: "aarogya-sahayak-b8f35",
+storageBucket: "aarogya-sahayak-b8f35.firebasestorage.app",
+messagingSenderId: "379104633052",
+appId: "1:379104633052:web:3d248cdecebf267e5ad419",
+measurementId: "G-Z45YJT8GLJ"
+};
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  // Initialize Firebase services
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const storage = firebase.storage();
+
+  console.log("Firebase initialized successfully!");
+</script>
+
+    <style>
+        /* ========== GLOBAL STYLES ========== */
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* ========== LOGIN PAGE STYLES ========== */
+        .login-card {
+            max-width: 400px;
+            margin: 100px auto;
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: linear-gradient(90deg, #0d6efd, #0b5ed7);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .login-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .demo-credentials {
+            background: #e8f4fc;
+            border-left: 4px solid #0d6efd;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* ========== DASHBOARD STYLES ========== */
+        .dashboard-header {
+            background: linear-gradient(90deg, #198754, #157347);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+        }
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+.stat-icon {
+    font-size: 2.5rem;
+    color: #0d6efd;
+    margin-bottom: 10px;
+}
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #198754;
+        }
+
+        .quick-action-btn {
+            padding: 15px;
+            font-size: 1.1rem;
+            margin: 5px;
+        }
+
+        @media print {
+    .nav-bar, .action-buttons {
+        display: none !important;
+    }
+
+    .prescription-container {
+        border: none;
+        box-shadow: none;
+        max-width: 100%;
+    }
+
+    body {
+        background: white !important;
+        padding: 0 !important;
+    }
+}
+
+        .activity-item {
+            border-left: 4px solid #0d6efd;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        /* ========== TRANSLATOR STYLES ========== */
+        .main-card {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, #0d6efd, #0b5ed7);
+            border-bottom: none;
+        }
+
+        textarea {
+            resize: vertical;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        #resultBox {
+            min-height: 250px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            white-space: pre-line;
+            font-size: 17px;
+            line-height: 1.8;
+        }
+
+        .language-badge {
+            font-size: 14px;
+            padding: 5px 12px;
+        }
+
+        .example-btn {
+            transition: all 0.3s;
+        }
+
+        .example-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .medical-alert {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+
+
+        /* ========== PRESCRIPTION STYLES ========== */
+.prescription-container {
+    background: white;
+    border: 2px solid #0d6efd;
+    border-radius: 15px;
+    padding: 30px;
+    max-width: 900px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.prescription-header {
+    border-bottom: 3px double #0d6efd;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.clinic-name {
+    color: #0d6efd;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.clinic-address {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.prescription-title h2 {
+    color: #198754;
+    text-transform: uppercase;
+    margin: 20px 0 10px 0;
+}
+
+.prescription-meta .badge {
+    margin: 0 5px;
+    font-size: 0.8rem;
+}
+
+.section {
+    margin-bottom: 20px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    border-left: 4px solid #0d6efd;
+}
+
+.section h4 {
+    color: #0d6efd;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+.patient-info p {
+    margin-bottom: 5px;
+}
+
+.medication-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.medication-table th {
+    background: #0d6efd;
+    color: white;
+    padding: 10px;
+    text-align: left;
+}
+
+.medication-table td {
+    padding: 8px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.medication-table tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+.instructions ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.instructions li {
+    padding: 5px 0;
+    padding-left: 25px;
+    position: relative;
+}
+
+.instructions li:before {
+    content: "✓";
+    color: #198754;
+    position: absolute;
+    left: 0;
+}
+
+.warnings .alert {
+    background: #fff3cd;
+    border-color: #ffc107;
+}
+
+.prescription-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px dashed #dee2e6;
+}
+
+.signature-line {
+    border-top: 2px solid #212529;
+    width: 200px;
+    margin-left: auto;
+    margin-bottom: 10px;
+}
+
+.doctor-name {
+    font-size: 1.1rem;
+    text-align: right;
+}
+
+.qr-section {
+    padding: 15px;
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+}
+
+.action-buttons {
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.action-buttons .btn {
+    padding: 12px;
+}
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0d6efd;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ========== PRESCRIPTION STYLES ========== */
+        .prescription-card {
+            background: white;
+            border: 2px solid #0d6efd;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .prescription-header {
+            text-align: center;
+            border-bottom: 3px double #0d6efd;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .prescription-logo {
+            font-size: 2.5rem;
+            color: #0d6efd;
+        }
+
+        .prescription-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #dee2e6;
+        }
+
+        .medication-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid #198754;
+        }
+
+        .signature-box {
+            border-top: 2px solid #212529;
+            padding-top: 20px;
+            margin-top: 40px;
+            text-align: right;
+        }
+
+        .qr-code {
+            width: 120px;
+            height: 120px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        /* ========== NAVIGATION ========== */
+        .nav-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            margin: 0 5px;
+        }
+
+        .user-info {
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        /* ========== RESPONSIVE DESIGN ========== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .card-body {
+                padding: 15px !important;
+            }
+
+            .login-card {
+                margin: 50px auto;
+            }
+
+            .stat-card {
+                margin-bottom: 15px;
+            }
+
+            .prescription-card {
+                padding: 15px;
+            }
+        }
+
+        /* ========== UTILITY CLASSES ========== */
+        .hidden {
+            display: none !important;
+        }
+
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .text-muted-small {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+
+        /* ========== PRESCRIPTION GENERATOR STYLES ========== */
+.prescription-container {
+    background: white;
+    border: 2px solid #0d6efd;
+    border-radius: 15px;
+    padding: 40px;
+    max-width: 1000px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(0, 106, 255, 0.1);
+    position: relative;
+}
+
+/* Header Styling */
+.prescription-header {
+    border-bottom: 3px double #0d6efd;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.clinic-name {
+    color: #0d6efd;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.clinic-address {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.clinic-contact {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+}
+
+.prescription-title h2 {
+    color: #198754;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 20px 0 10px 0;
+}
+
+.prescription-meta {
+    margin-top: 10px;
+}
+
+.prescription-meta .badge {
+    margin: 0 5px;
+    font-size: 0.8rem;
+    padding: 5px 10px;
+}
+
+/* Section Styling */
+.section {
+    margin-bottom: 25px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f8f9fa;
+    border-left: 4px solid #0d6efd;
+}
+
+.section h4 {
+    color: #0d6efd;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 8px;
+    margin-bottom: 15px;
+}
+
+/* Patient Information */
+.patient-info p {
+    margin-bottom: 8px;
+    font-size: 1.05rem;
+}
+
+.patient-info strong {
+    color: #495057;
+    min-width: 80px;
+    display: inline-block;
+}
+
+/* Medication Table */
+.medication-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.medication-table th {
+    background: #0d6efd;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.medication-table td {
+    padding: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.medication-table tr:nth-child(even) {
+    background: #f8f9fa;
+}
+
+.medication-table tr:hover {
+    background: #e9ecef;
+}
+
+/* Investigations */
+.investigations-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+}
+
+.investigation-item {
+    background: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+}
+
+.investigation-item input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Instructions & Warnings */
+.instructions ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.instructions li {
+    padding: 5px 0;
+    padding-left: 25px;
+    position: relative;
+}
+
+.instructions li:before {
+    content: "✓";
+    color: #198754;
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+}
+
+.warnings .alert {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+}
+
+/* Follow-up */
+.followup-details p {
+    margin-bottom: 8px;
+    padding: 8px;
+    background: white;
+    border-radius: 5px;
+}
+
+/* Footer */
+.prescription-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px dashed #dee2e6;
+}
+
+.signature-section {
+    text-align: right;
+}
+
+.signature-line {
+    border-top: 2px solid #212529;
+    width: 200px;
+    margin-left: auto;
+    margin-bottom: 10px;
+}
+
+.doctor-name {
+    font-size: 1.2rem;
+    color: #0d6efd;
+}
+
+.doctor-qual {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* QR Code */
+.qr-section {
+    padding: 20px;
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    background: #f8f9fa;
+}
+
+.qr-placeholder {
+    padding: 20px;
+}
+
+.qr-icon {
+    color: #0d6efd;
+    margin-bottom: 10px;
+}
+
+.qr-text {
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.qr-id {
+    font-family: monospace;
+    color: #495057;
+}
+
+/* Prescription Notes */
+.prescription-notes {
+    margin-top: 20px;
+    padding: 15px;
+    background: #e8f4fc;
+    border-radius: 8px;
+    border-left: 4px solid #0d6efd;
+}
+
+/* Action Buttons */
+.action-buttons {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 20px;
+    border-top: 2px solid #dee2e6;
+    z-index: 1000;
+}
+
+.action-buttons .btn {
+    margin: 5px 0;
+    padding: 12px;
+    font-size: 1rem;
+}
+
+/* Prescription Preview */
+.prescription-preview {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid #dee2e6;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Print Styles */
+@media print {
+    .nav-bar, .action-buttons, .prescription-preview {
+        display: none !important;
+    }
+
+    .prescription-container {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+    }
+
+    body {
+        background: white !important;
+        padding: 0 !important;
+    }
+
+    .section {
+        break-inside: avoid;
+    }
+
+    .prescription-header {
+        border-bottom: 3px double #000;
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .prescription-container {
+        padding: 20px;
+    }
+
+    .medication-table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .investigations-list {
+        grid-template-columns: 1fr;
+    }
+
+    .clinic-name {
+        font-size: 1.3rem;
+    }
+
+    .prescription-title h2 {
+        font-size: 1.5rem;
+    }
+}
+
+    </style>
+</head>
+<body>
+    <!-- ========== LOGIN PAGE ========== -->
+    <div id="loginPage" class="page active">
+        <div class="container">
+            <div class="login-card">
+                <div class="login-header">
+                    <div class="login-icon">
+                        <i class="fas fa-hospital-alt"></i>
+                    </div>
+                    <h1>Aarogya-Sahayak</h1>
+                    <p class="mb-0">Medical Translator for Rural India</p>
+                </div>
+
+                <div class="card-body p-4">
+                    <h4 class="mb-4 text-center">Healthcare Worker Login</h4>
+
+                    <!-- Demo Credentials Box -->
+                    <div class="demo-credentials mb-4">
+                        <strong><i class="fas fa-key me-2"></i>Demo Credentials:</strong>
+                        <div class="mt-2">
+                            <div>👩‍⚕️ <strong>Healthcare Worker:</strong> healthworker / india123</div>
+                            <div>👨‍⚕️ <strong>Doctor:</strong> doctor / medicare</div>
+                            <div>🧪 <strong>Demo:</strong> demo / demo123</div>
+                        </div>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" id="loginUsername" class="form-control" placeholder="Enter username" value="healthworker">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" id="loginPassword" class="form-control" placeholder="Enter password" value="india123">
+                        </div>
+                    </div>
+
+                    <div class="mb-4 form-check">
+    <input type="checkbox" class="form-check-input" id="rememberMe">
+    <label class="form-check-label" for="rememberMe">Keep me logged in for 7 days</label>
+</div>
+
+                    <button id="loginBtn" class="btn btn-primary btn-lg w-100 py-3">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Login to Aarogya-Sahayak
+                    </button>
+<!-- Add to login page -->
+
+
+<div class="text-center mt-3">
+    <button class="btn btn-sm btn-outline-info" onclick="demoAutoLogin()">
+        <i class="fas fa-bolt me-1"></i> Quick Demo Login
+    </button>
+</div>
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Secure access for healthcare professionals only
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-footer text-center text-muted py-3">
+                    <small>
+                        Built for OpenAI Academy x NxtWave Buildathon
+                        <br>
+                        <span class="badge bg-success">VGU Edition</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add at bottom of login page card -->
+<div class="text-center mt-3">
+    <button class="btn btn-sm btn-outline-warning" onclick="resetApp()">
+        <i class="fas fa-redo me-1"></i> Reset App
+    </button>
+</div>
+
+    <!-- ========== DASHBOARD PAGE ========== -->
+    <div id="dashboardPage" class="page">
+        <div class="container">
+            <!-- Navigation Bar -->
+            <div class="nav-bar">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h4 class="mb-0">
+                            <i class="fas fa-hospital-alt text-primary me-2"></i>
+                            <span class="user-info" id="userGreeting">Welcome, User!</span>
+                        </h4>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button class="btn btn-outline-primary nav-btn" onclick="showPage('translator')">
+                            <i class="fas fa-language me-1"></i> Translator
+                        </button>
+                        <button class="btn btn-outline-success nav-btn" onclick="showPage('prescription')">
+                            <i class="fas fa-prescription me-1"></i> Prescription
+                        </button>
+                        <button class="btn btn-outline-danger nav-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Header -->
+            <div class="dashboard-header">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h2>Welcome back, <span id="dashboardUserName">Healthcare Worker</span>!</h2>
+                        <p class="mb-0">Your medical translation dashboard</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="badge bg-light text-dark p-2">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            <span id="currentDate">Today</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <div class="stat-number" id="totalTranslations">0</div>
+                        <p class="text-muted mb-0">Translations</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-globe-asia"></i>
+                        </div>
+                        <div class="stat-number" id="languagesUsed">1</div>
+                        <p class="text-muted mb-0">Languages</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-number" id="patientsServed">0</div>
+                        <p class="text-muted mb-0">Patients</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="stat-number" id="todayCount">0</div>
+                        <p class="text-muted mb-0">Today</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h4 class="mb-3">
+                        <i class="fas fa-bolt text-warning me-2"></i>
+                        Quick Actions
+                    </h4>
+                    <div class="d-flex flex-wrap">
+                        <button class="btn btn-primary quick-action-btn" onclick="showPage('translator')">
+                            <i class="fas fa-plus-circle me-2"></i> New Translation
+                        </button>
+                        <button class="btn btn-success quick-action-btn" onclick="showPage('prescription')">
+                            <i class="fas fa-file-medical me-2"></i> Create Prescription
+                        </button>
+                        <button class="btn btn-info quick-action-btn" onclick="viewHistory()">
+                            <i class="fas fa-history me-2"></i> View History
+                        </button>
+                        <button class="btn btn-warning quick-action-btn" onclick="showPage('translator'); setExample('fever')">
+                            <i class="fas fa-thermometer-half me-2"></i> Fever Template
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-clock me-2"></i>
+                                Recent Activity
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="recentActivity">
+                                <div class="text-center text-muted py-4">
+                                    <i class="fas fa-history fa-2x mb-3"></i>
+                                    <p>No recent translations yet</p>
+                                    <button class="btn btn-sm btn-primary" onclick="showPage('translator')">
+                                        Start your first translation
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-5 text-muted small">
+                <p>
+                    <i class="fas fa-shield-alt me-1"></i>
+                    Session active • Auto-logout in <span id="sessionTimer">30:00</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== TRANSLATOR PAGE ========== -->
+    <div id="translatorPage" class="page">
+        <div class="container">
+            <!-- Navigation Bar -->
+            <div class="nav-bar">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-secondary" onclick="showPage('dashboard')">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                        </button>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button class="btn btn-outline-success nav-btn" onclick="showPage('prescription')">
+                            <i class="fas fa-prescription me-1"></i> Make Prescription
+                        </button>
+                        <button class="btn btn-outline-danger nav-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Translator Card (Your Existing Code) -->
+            <div class="card main-card">
+                <div class="card-header text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-language me-2"></i>
+                        Medical Note Translator
+                    </h4>
+                    <p class="mb-0 small opacity-75">Translate complex medical notes into simple local language</p>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Patient Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-user me-2"></i>
+                                Patient Name:
+                            </label>
+                            <input type="text" id="patientName" class="form-control" placeholder="Enter patient name">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-birthday-cake me-2"></i>
+                                Patient Age:
+                            </label>
+                            <input type="number" id="patientAge" class="form-control" placeholder="Age">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-venus-mars me-2"></i>
+                                Gender:
+                            </label>
+                            <select id="patientGender" class="form-select">
+                                <option value="">Select</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Left Column: Input -->
+                        <div class="col-lg-6 border-end-lg pe-lg-4">
+                            <!-- Language Selection -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-globe-asia me-2"></i>
+                                    Select Patient's Language:
+                                </label>
+                                <select id="languageSelect" class="form-select form-select-lg">
+                                    <option value="Hindi">Hindi (हिन्दी)</option>
+                                    <option value="Telugu">Telugu (తెలుగు)</option>
+                                    <option value="Tamil">Tamil (தமிழ்)</option>
+                                    <option value="Bengali">Bengali (বাংলা)</option>
+                                    <option value="Marathi">Marathi (मराठी)</option>
+                                    <option value="Gujarati">Gujarati (ગુજરાતી)</option>
+                                    <option value="Punjabi">Punjabi (ਪੰਜਾਬੀ)</option>
+                                </select>
+                            </div>
+
+                            <!-- Medical Input -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-file-medical me-2"></i>
+                                    English Medical Note:
+                                </label>
+                                <textarea id="medicalInput" class="form-control" rows="8" 
+                                    placeholder="Paste the doctor's English note here...">Patient is diagnosed with acute gastroenteritis. Prescribed oral rehydration solution (ORS) 500ml after each loose stool. Advised BRAT diet (bananas, rice, applesauce, toast). Follow up in 3 days if symptoms persist.</textarea>
+                                <div class="form-text">Enter diagnosis, medication, and instructions in English</div>
+                            </div>
+
+                            <!-- Quick Examples -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-bolt me-2"></i>
+                                    Quick Examples:
+                                </label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button class="btn btn-sm btn-outline-primary example-btn" data-example="fever">
+                                        <i class="fas fa-thermometer-half me-1"></i> Fever
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary example-btn" data-example="diabetes">
+                                        <i class="fas fa-syringe me-1"></i> Diabetes
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary example-btn" data-example="wound">
+                                        <i class="fas fa-band-aid me-1"></i> Wound Care
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary example-btn" data-example="cold">
+                                        <i class="fas fa-head-side-cough me-1"></i> Cold & Cough
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2">
+                                <button id="translateBtn" class="btn btn-primary btn-lg flex-grow-1 py-3 fw-bold">
+                                    <i class="fas fa-exchange-alt me-2"></i>
+                                    <span id="btnText">Translate & Simplify</span>
+                                    <span id="loadingSpinner" class="loading-spinner ms-2"></span>
+                                </button>
+                                <button id="saveTranslationBtn" class="btn btn-success btn-lg" onclick="saveTranslation()">
+                                    <i class="fas fa-save me-2"></i> Save
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Output -->
+                        <div class="col-lg-6 ps-lg-4 mt-4 mt-lg-0">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-comment-medical me-2"></i>
+                                Simple Instructions for Patient:
+                            </label>
+
+                            <!-- Language Badge -->
+                            <div class="mb-3">
+                                <span id="languageBadge" class="badge bg-info language-badge">Hindi</span>
+                                <span id="patientBadge" class="badge bg-secondary ms-2">No patient</span>
+                            </div>
+
+                            <!-- Output Area -->
+                            <div id="resultBox" class="p-4 border rounded">
+                                <div id="initialState" class="text-center text-muted py-5">
+                                    <i class="fas fa-heartbeat fa-3x mb-3 text-secondary"></i>
+                                    <h5>Your translated instructions will appear here</h5>
+                                    <p class="small">Enter a medical note and click "Translate & Simplify"</p>
+                                </div>
+                                <div id="resultState" class="d-none">
+                                    <div id="translatedText"></div>
+                                </div>
+                            </div>
+
+                            <!-- Add this after the patient info row -->
+<div class="row mb-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header py-2">
+                <h6 class="mb-0">
+                    <i class="fas fa-heartbeat me-2"></i>
+                    Extracted Vital Signs
+                </h6>
+            </div>
+            <div class="card-body py-2">
+                <div class="row" id="extractedVitalsDisplay">
+                    <div class="col-md-4">
+                        <span class="badge bg-info me-2">Weight:</span>
+                        <span id="extractedWeight">-- kg</span>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="badge bg-info me-2">BP:</span>
+                        <span id="extractedBP">--/--</span>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="badge bg-info me-2">Temp:</span>
+                        <span id="extractedTemp">--°F</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+                            <!-- Action Buttons -->
+                            <div id="actionButtons" class="mt-3 d-flex gap-2 d-none">
+                                <button id="copyBtn" class="btn btn-success">
+                                    <i class="far fa-copy me-1"></i> Copy Text
+                                </button>
+                                <button id="whatsappBtn" class="btn btn-success" style="background-color: #25D366; border-color: #25D366;">
+                                    <i class="fab fa-whatsapp me-1"></i> WhatsApp
+                                </button>
+                                <button id="prescriptionBtn" class="btn btn-primary" onclick="generatePrescriptionWithAutoFill()">
+    <i class="fas fa-file-prescription me-1"></i> Prescription
+</button>
+                                <button id="newNoteBtn" class="btn btn-outline-secondary">
+                                    <i class="fas fa-plus me-1"></i> New
+                                </button>
+                            </div>
+
+                            <!-- Tips -->
+                            <div class="alert alert-info mt-4">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>Tip:</strong> Add patient details before translating for better record keeping.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== PRESCRIPTION GENERATOR ========== -->
+<div id="prescriptionPage" class="page">
+    <!-- Add this to your prescription page -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <i class="fas fa-edit me-2"></i>
+            Edit Prescription & Auto-Translate
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <!-- Diagnosis Editor -->
+                <div class="mb-3">
+                    <label class="form-label">Diagnosis:</label>
+                    <input type="text" id="editDiagnosis" class="form-control" 
+                           placeholder="Enter diagnosis"
+                           oninput="updateTranslationFromPrescription()">
+                </div>
+                
+                <!-- Medication Editor -->
+                <div class="mb-3">
+                    <label class="form-label">Add Medication:</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="newMedicineName" class="form-control" placeholder="Medicine name">
+                        <input type="text" id="newMedicineStrength" class="form-control" placeholder="Strength">
+                        <button class="btn btn-primary" onclick="addNewMedicine()">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Instruction Editor -->
+                <div class="mb-3">
+                    <label class="form-label">Add Instruction:</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="newInstruction" class="form-control" 
+                               placeholder="e.g., Take after food">
+                        <button class="btn btn-success" onclick="addNewInstruction()">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <!-- Live Translation Preview -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="fas fa-language me-2"></i>
+                            Live Translation Preview
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="liveTranslationPreview" class="border rounded p-3" 
+                             style="min-height: 200px; max-height: 300px; overflow-y: auto;">
+                            <p class="text-muted">Changes will appear here as you edit...</p>
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-primary" onclick="updateMainTranslation()">
+                                <i class="fas fa-sync me-1"></i> Update Main Translation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <div class="container">
+        <!-- Navigation -->
+        <div class="nav-bar mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <button class="btn btn-outline-secondary" onclick="showPage('translator')">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Translator
+                    </button>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn btn-primary" onclick="printPrescription()">
+                        <i class="fas fa-print me-1"></i> Print
+                    </button>
+                    <button class="btn btn-success" onclick="downloadPrescription()">
+                        <i class="fas fa-download me-1"></i> Download
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Prescription Card -->
+        <div class="prescription-container">
+            <!-- Header -->
+            <div class="prescription-header text-center mb-4">
+                <div class="clinic-info">
+                    <h1 class="clinic-name">🩺 Aarogya-Sahayak Healthcare</h1>
+                    <p class="clinic-address">Digital Health Partner | OpenAI Academy Certified</p>
+                </div>
+
+                <div class="prescription-title">
+                    <h2>MEDICAL PRESCRIPTION</h2>
+                    <div class="prescription-meta">
+                        <span class="badge bg-primary">ID: <span id="prescriptionId">RX-2024-001</span></span>
+                        <span class="badge bg-info">Date: <span id="prescriptionDate">Today</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient Information -->
+            <div class="section patient-info">
+                <h4><i class="fas fa-user-injured me-2"></i> PATIENT DETAILS</h4>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Name:</strong> <span id="rxPatientName">Not Specified</span></p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Age:</strong> <span id="rxPatientAge">--</span> years</p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Gender:</strong> <span id="rxPatientGender">--</span></p>
+                    </div>
+                    <div class="col-md-2">
+                        <p><strong>Weight:</strong> <span id="rxPatientWeight">--</span> kg</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnosis -->
+            <div class="section diagnosis">
+                <h4><i class="fas fa-stethoscope me-2"></i> DIAGNOSIS</h4>
+                <div class="diagnosis-content">
+                    <p id="rxDiagnosis">No diagnosis provided</p>
+                    <small class="text-muted" id="rxSymptoms">Symptoms will appear here</small>
+                </div>
+            </div>
+
+            <!-- Medication Table -->
+            <div class="section medication">
+                <h4><i class="fas fa-pills me-2"></i> PRESCRIBED MEDICATION</h4>
+                <table class="medication-table" id="medicationTable">
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Strength</th>
+                            <th>Dosage</th>
+                            <th>Frequency</th>
+                            <th>Days</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicationBody">
+                        <!-- Medications will appear here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Instructions & Warnings -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="section instructions">
+                        <h4><i class="fas fa-list-check me-2"></i> INSTRUCTIONS</h4>
+                        <ul id="rxInstructionList">
+                            <li>Take medicines after food</li>
+                            <li>Drink plenty of water</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="section warnings">
+                        <h4><i class="fas fa-exclamation-triangle me-2 text-warning"></i> WARNINGS</h4>
+                        <div class="alert alert-warning" id="rxWarnings">
+                            Return if symptoms worsen
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="prescription-footer">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="signature-section">
+                            <div class="signature-line"></div>
+                            <p class="doctor-name"><strong id="rxDoctorName">Healthcare Provider</strong></p>
+                            <p class="doctor-qual">Aarogya-Sahayak Certified</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="qr-section text-center">
+                            <div class="qr-placeholder" id="qrCodePlaceholder">
+                                <i class="fas fa-qrcode fa-3x mb-2"></i>
+                                <p>Scan for Digital Copy</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons mt-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <button class="btn btn-lg btn-primary w-100" onclick="sendPrescriptionSMS()">
+                        <i class="fas fa-sms"></i> Send SMS
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <button class="btn btn-lg btn-success w-100" onclick="sharePrescriptionWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- ========== PRESCRIPTION GENERATOR ========== -->
+<div id="prescriptionExtendedPage" class="page">
+    <div class="container">
+        <!-- Navigation -->
+        <div class="nav-bar mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <button class="btn btn-outline-secondary" onclick="showPage('translator')">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Translator
+                    </button>
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="btn btn-primary" onclick="printPrescription()">
+                        <i class="fas fa-print me-1"></i> Print
+                    </button>
+                    <button class="btn btn-success" onclick="downloadPrescription()">
+                        <i class="fas fa-download me-1"></i> Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Prescription Card -->
+        <div class="prescription-container">
+            <!-- Header Section -->
+            <div class="prescription-header text-center mb-4">
+                <div class="clinic-info">
+                    <h1 class="clinic-name">🩺 Aarogya-Sahayak Healthcare</h1>
+                    <p class="clinic-address">Digital Health Partner | OpenAI Academy Certified</p>
+                    <p class="clinic-contact">
+                        <i class="fas fa-phone"></i> Helpline: 1800-123-4567 | 
+                        <i class="fas fa-globe"></i> www.aarogya-sahayak.in
+                    </p>
+                </div>
+
+                <div class="prescription-title">
+                    <h2>MEDICAL PRESCRIPTION</h2>
+                    <div class="prescription-meta">
+                        <span class="badge bg-primary">ID: <span id="prescriptionId">RX-2024-001</span></span>
+                        <span class="badge bg-info">Date: <span id="prescriptionDate">26/12/2024</span></span>
+                        <span class="badge bg-success">Valid: 30 Days</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patient Information -->
+            <div class="section patient-info">
+                <h4><i class="fas fa-user-injured me-2"></i> PATIENT DETAILS</h4>
+                <div class="row">
+                    <div class="col-md-3">
+                        <p><strong>Name:</strong> <span id="rxPatientName">Not Specified</span></p>
+                    </div>
+                    <div class="col-md-2">
+                        <p><strong>Age:</strong> <span id="rxPatientAge">--</span> years</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p><strong>Gender:</strong> <span id="rxPatientGender">--</span></p>
+                    </div>
+                    <div class="col-md-3">
+                        <p><strong>Weight:</strong> <span id="rxPatientWeight">--</span> kg</p>
+                    </div>
+                    <div class="col-md-2">
+                        <p><strong>BP:</strong> <span id="rxPatientBP">--/--</span> mmHg</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diagnosis Section -->
+            <div class="section diagnosis">
+                <h4><i class="fas fa-stethoscope me-2"></i> DIAGNOSIS</h4>
+                <div class="diagnosis-content">
+                    <p id="rxDiagnosis">No diagnosis provided</p>
+                    <small class="text-muted" id="rxSymptoms">Symptoms: Not specified</small>
+                </div>
+            </div>
+
+            <!-- Medication Table -->
+            <div class="section medication">
+                <h4><i class="fas fa-pills me-2"></i> PRESCRIBED MEDICATION</h4>
+                <table class="medication-table" id="medicationTable">
+                    <thead>
+                        <tr>
+                            <th width="30%">Medicine Name</th>
+                            <th width="15%">Strength</th>
+                            <th width="20%">Dosage</th>
+                            <th width="15%">Frequency</th>
+                            <th width="10%">Days</th>
+                            <th width="10%">Timing</th>
+                        </tr>
+                    </thead>
+                    <tbody id="medicationBody">
+                        <!-- Medication rows will be added here -->
+                    </tbody>
+                </table>
+                <div class="text-muted small mt-2" id="rxInstructions">
+                    <i class="fas fa-info-circle"></i> Take all medicines as directed. Complete full course.
+                </div>
+            </div>
+
+            <!-- Investigations -->
+            <div class="section investigations">
+                <h4><i class="fas fa-microscope me-2"></i> INVESTIGATIONS ADVISED</h4>
+                <div class="investigations-list" id="investigationsList">
+                    <div class="investigation-item">
+                        <input type="checkbox" id="invest1" checked>
+                        <label for="invest1">Complete Blood Count (CBC)</label>
+                    </div>
+                    <!-- More will be added -->
+                </div>
+            </div>
+
+            <!-- Instructions & Warnings -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="section instructions">
+                        <h4><i class="fas fa-list-check me-2"></i> INSTRUCTIONS</h4>
+                        <ul id="rxInstructionList">
+                            <li>Take medicines after food</li>
+                            <li>Drink plenty of water</li>
+                            <li>Complete full course of antibiotics</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="section warnings">
+                        <h4><i class="fas fa-exclamation-triangle me-2 text-warning"></i> WARNING SIGNS</h4>
+                        <div class="alert alert-warning" id="rxWarnings">
+                            Return immediately if: High fever, difficulty breathing, rash, or severe pain.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Follow-up -->
+            <div class="section followup">
+                <h4><i class="fas fa-calendar-check me-2"></i> FOLLOW-UP</h4>
+                <div class="followup-details">
+                    <p><strong>Next Visit:</strong> <span id="rxNextVisit">3 days from today</span></p>
+                    <p><strong>Doctor to See:</strong> <span id="rxDoctor">Same Doctor</span></p>
+                    <p><strong>Emergency Contact:</strong> Nearest Hospital Emergency Department</p>
+                </div>
+            </div>
+
+            <!-- Footer with Signature & QR -->
+            <div class="prescription-footer">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="signature-section">
+                            <div class="signature-line"></div>
+                            <p class="doctor-name"><strong id="rxDoctorName">Dr. Healthcare Provider</strong></p>
+                            <p class="doctor-qual">MBBS, MD | Reg. No: <span id="rxRegNo">MH-12345</span></p>
+                            <p class="clinic-name">Aarogya-Sahayak Certified Healthcare Professional</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="qr-section text-center">
+                            <div class="qr-placeholder" id="qrCodePlaceholder">
+                                <div class="qr-icon">
+                                    <i class="fas fa-qrcode fa-3x"></i>
+                                </div>
+                                <p class="qr-text">Scan for Digital Copy</p>
+                                <p class="qr-id">ID: <span id="rxQrId">RX-2024-001</span></p>
+                            </div>
+                            <div class="verification">
+                                <p class="small">
+                                    <i class="fas fa-shield-alt"></i>
+                                    Verified: <span id="rxVerification">Digital Prescription</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prescription Notes -->
+                <div class="prescription-notes">
+                    <p class="small text-muted">
+                        <i class="fas fa-info-circle"></i>
+                        This is a digitally generated prescription. Show to pharmacist for dispensing. 
+                        Keep original for medical records. Do not share medicines.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons mt-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <button class="btn btn-lg btn-primary w-100" onclick="sendPrescriptionSMS()">
+                        <i class="fas fa-sms"></i> Send SMS to Patient
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <button class="btn btn-lg btn-success w-100" onclick="sharePrescriptionWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> Share on WhatsApp
+                    </button>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-12">
+                    <button class="btn btn-lg btn-outline-secondary w-100" onclick="savePrescriptionTemplate()">
+                        <i class="fas fa-save"></i> Save as Template
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prescription Preview -->
+        <div class="mt-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-eye me-2"></i> Prescription Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="prescription-preview" id="prescriptionPreview">
+                        <!-- Preview will be shown here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- ========== PRESCRIPTION PAGE ========== -->
+    <div id="prescriptionSimplePage" class="page">
+        <div class="container">
+            <!-- Navigation Bar -->
+            <div class="nav-bar">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <button class="btn btn-outline-secondary" onclick="showPage('dashboard')">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+                        </button>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button class="btn btn-outline-primary nav-btn" onclick="showPage('translator')">
+                            <i class="fas fa-language me-1"></i> Translator
+                        </button>
+                        <button class="btn btn-outline-danger nav-btn" onclick="logout()">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prescription Card -->
+            <div class="prescription-card">
+                <!-- Header -->
+                <div class="prescription-header">
+                    <div class="prescription-logo">
+                        <i class="fas fa-hospital-alt"></i>
+                    </div>
+                    <h2>Aarogya-Sahayak</h2>
+                    <h4 class="text-primary">MEDICAL PRESCRIPTION</h4>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Digital Prescription • Valid with QR Code
+                    </p>
+                </div>
+
+                <!-- Prescription ID & Date -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p class="mb-1">
+                            <strong>Prescription ID:</strong> 
+                            <span id="prescriptionId" class="badge bg-info">AS-2024-001</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <p class="mb-1">
+                            <strong>Date:</strong> 
+                            <span id="prescriptionDate">26 Dec 2024</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Patient Information -->
+                <div class="prescription-section">
+                    <h5 class="border-bottom pb-2">
+                        <i class="fas fa-user-injured me-2"></i>
+                        Patient Information
+                    </h5>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p><strong>Name:</strong> <span id="prescriptionPatientName">Not specified</span></p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Age:</strong> <span id="prescriptionPatientAge">--</span> years</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p><strong>Gender:</strong> <span id="prescriptionPatientGender">--</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnosis -->
+                <div class="prescription-section">
+                    <h5 class="border-bottom pb-2">
+                        <i class="fas fa-diagnoses me-2"></i>
+                        Diagnosis
+                    </h5>
+                    <p id="prescriptionDiagnosis">No diagnosis entered</p>
+                </div>
+
+                <!-- Medication -->
+                <div class="prescription-section">
+                    <h5 class="border-bottom pb-2">
+                        <i class="fas fa-pills me-2"></i>
+                        Medication
+                    </h5>
+                    <div id="prescriptionMedication">
+                        <div class="medication-item">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Medicine:</strong> <span>No medication specified</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Dosage:</strong> <span>--</span>
+                                </div>
+                                <div class="col-md-3">
+                                    <strong>Duration:</strong> <span>--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions -->
+                <div class="prescription-section">
+                    <h5 class="border-bottom pb-2">
+                        <i class="fas fa-list-check me-2"></i>
+                        Instructions
+                    </h5>
+                    <div id="prescriptionInstructions">
+                        <p class="text-muted">No instructions provided</p>
+                    </div>
+                </div>
+
+
+                <!-- Add this section in your translator page (after gender selection) -->
+
+                <!-- Add this test button somewhere -->
+<button onclick="testFirebase()" class="btn btn-info btn-sm">
+    <i class="fas fa-fire me-1"></i> Test Firebase
+</button>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <label class="form-label fw-bold">
+            <i class="fas fa-weight me-2"></i>
+            Weight (kg):
+        </label>
+        <input type="number" id="patientWeight" class="form-control" placeholder="Enter weight">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label fw-bold">
+            <i class="fas fa-heartbeat me-2"></i>
+            Blood Pressure:
+        </label>
+        <input type="text" id="patientBP" class="form-control" placeholder="e.g., 120/80">
+    </div>
+    <div class="col-md-4">
+        <label class="form-label fw-bold">
+            <i class="fas fa-thermometer me-2"></i>
+            Temperature (°F):
+        </label>
+        <input type="number" step="0.1" id="patientTemp" class="form-control" placeholder="e.g., 98.6">
+    </div>
+</div>
+                <!-- Warnings -->
+                <div class="prescription-section">
+                    <h5 class="border-bottom pb-2 text-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Important Warnings
+                    </h5>
+                    <div id="prescriptionWarnings">
+                        <p class="text-muted">No specific warnings</p>
+                    </div>
+                </div>
+
+                <!-- Follow-up -->
+                <div class="prescription-section">
+                    <h5 class="border-bottom pb-2">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        Follow-up
+                    </h5>
+                    <p id="prescriptionFollowup">No follow-up scheduled</p>
+                </div>
+
+                <!-- Footer with QR and Signature -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="qr-code">
+                            <div class="text-center">
+                                <i class="fas fa-qrcode fa-2x mb-2"></i>
+                                <div>Scan for<br>Digital Copy</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="signature-box">
+                            <p class="mb-1">
+                                <strong id="doctorName">Healthcare Professional</strong>
+                            </p>
+                            <p class="text-muted-small mb-0">Aarogya-Sahayak Certified</p>
+                            <p class="text-muted-small mb-0">OpenAI Academy Buildathon</p>
+                            <p class="text-muted-small">Valid for 30 days from issue</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Print Button -->
+                <div class="text-center mt-4">
+                    <button class="btn btn-primary me-2" onclick="printPrescription()">
+                        <i class="fas fa-print me-1"></i> Print Prescription
+                    </button>
+                    <button class="btn btn-success" onclick="sharePrescription()">
+                        <i class="fas fa-share-alt me-1"></i> Share Digital Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== JAVASCRIPT ========== -->
+    <script>
+        // ======================
+        // 1. GLOBAL VARIABLES & CONFIG
+        // ======================
+        const APP_NAME = "Aarogya-Sahayak";
+        const VERSION = "2.0";
+        const SESSION_TIMEOUT = 1800; // 30 minutes in seconds
+
+        // Mock user database
+        const users = [
+            { 
+                username: "healthworker", 
+                password: "india123", 
+                name: "Priya Sharma", 
+                role: "Healthcare Worker",
+                location: "Rural Health Center",
+                experience: "3 years"
+            },
+            { 
+                username: "doctor", 
+                password: "medicare", 
+                name: "Dr. Raj Patel", 
+                role: "Medical Doctor",
+                location: "District Hospital",
+                experience: "10 years"
+            },
+            { 
+                username: "demo", 
+                password: "demo123", 
+                name: "Demo User", 
+                role: "Healthcare Worker",
+                location: "Demo Clinic",
+                experience: "1 year"
+            }
+        ];
+
+        // Medical examples (from your original code)
+        const examples = {
+            fever: `Patient: 35-year-old female
+Weight: 62 kg
+Blood Pressure: 118/76
+Temperature: 102.5°F
+Symptoms: High fever (102.5°F), dry cough, body aches, fatigue
+Diagnosis: Viral upper respiratory infection
+Medication: Paracetamol 500mg every 6 hours for fever
+Instructions: Rest, drink warm fluids, steam inhalation
+Follow-up: Return if breathing difficulty or fever persists >3 days`,
+
+hypertension: `Patient: 60-year-old male, weight 78 kg
+Blood Pressure: 150/95 (High)
+Temperature: 98.6°F
+Current medication: Amlodipine 5mg daily
+New prescription: Add Hydrochlorothiazide 12.5mg daily
+Monitoring: Check BP twice daily (target: <140/90)
+Diet advice: Low salt, more vegetables, reduce oil
+Warning signs: Dizziness, severe headache, vision changes`,
+
+
+            diabetes: `Patient: 60-year-old male, Type 2 Diabetes
+Current medication: Metformin 1000mg daily
+New prescription: Add Glipizide 5mg daily
+Monitoring: Check fasting sugar daily (target: 100-130 mg/dL)
+Diet advice: Avoid sweets, rice, potatoes. Eat more vegetables.
+Warning signs: Dizziness, sweating, confusion (low sugar symptoms)`,
+
+            wound: `Patient: 8-year-old boy
+Injury: Deep cut on left forearm, 3 cm long, cleaned and sutured
+Care instructions: Keep wound dry for 48 hours, then clean daily with soap and water
+Medication: Antibiotic ointment twice daily for 5 days
+Pain management: Ibuprofen if needed
+Warning: Return if redness, swelling, pus, or fever develops`,
+
+            cold: `Patient: 45-year-old male
+Symptoms: Runny nose, sore throat, mild cough, slight fever (100°F)
+Diagnosis: Common cold
+Medication: Antihistamines for runny nose, throat lozenges
+Instructions: Rest, drink plenty of fluids, gargle with warm salt water
+Follow-up: Return if symptoms worsen or persist beyond 7 days`
+
+
+
+
+
+        };
+
+
+        // Current user session
+        let currentUser = null;
+        let sessionTimer = SESSION_TIMEOUT;
+        let translationsHistory = JSON.parse(localStorage.getItem('translationsHistory')) || [];
+
+        // ======================
+        // 2. DOM ELEMENTS
+        // ======================
+        // Login page elements
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginBtn = document.getElementById('loginBtn');
+
+        // Dashboard elements
+        const userGreeting = document.getElementById('userGreeting');
+        const dashboardUserName = document.getElementById('dashboardUserName');
+        const currentDate = document.getElementById('currentDate');
+        const totalTranslations = document.getElementById('totalTranslations');
+        const languagesUsed = document.getElementById('languagesUsed');
+        const patientsServed = document.getElementById('patientsServed');
+        const todayCount = document.getElementById('todayCount');
+        const recentActivity = document.getElementById('recentActivity');
+        const sessionTimerElement = document.getElementById('sessionTimer');
+
+        // Translator elements (from your code)
+       const medicalInput = document.getElementById('medicalInput');
+if (!medicalInput) {
+    console.error('medicalInput element not found!');
+}
+        const languageSelect = document.getElementById('languageSelect');
+        const translateBtn = document.getElementById('translateBtn');
+        const btnText = document.getElementById('btnText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const initialState = document.getElementById('initialState');
+        const resultState = document.getElementById('resultState');
+        const translatedText = document.getElementById('translatedText');
+        const languageBadge = document.getElementById('languageBadge');
+        const actionButtons = document.getElementById('actionButtons');
+        const copyBtn = document.getElementById('copyBtn');
+        const whatsappBtn = document.getElementById('whatsappBtn');
+        const newNoteBtn = document.getElementById('newNoteBtn');
+        const patientName = document.getElementById('patientName');
+        const patientAge = document.getElementById('patientAge');
+        const patientGender = document.getElementById('patientGender');
+        const patientBadge = document.getElementById('patientBadge');
+        const saveTranslationBtn = document.getElementById('saveTranslationBtn');
+        const prescriptionBtn = document.getElementById('prescriptionBtn');
+
+        // Prescription elements
+        const prescriptionId = document.getElementById('prescriptionId');
+        const prescriptionDate = document.getElementById('prescriptionDate');
+        const prescriptionPatientName = document.getElementById('prescriptionPatientName');
+        const prescriptionPatientAge = document.getElementById('prescriptionPatientAge');
+        const prescriptionPatientGender = document.getElementById('prescriptionPatientGender');
+        const prescriptionDiagnosis = document.getElementById('prescriptionDiagnosis');
+        const prescriptionMedication = document.getElementById('prescriptionMedication');
+        const prescriptionInstructions = document.getElementById('prescriptionInstructions');
+        const prescriptionWarnings = document.getElementById('prescriptionWarnings');
+        const prescriptionFollowup = document.getElementById('prescriptionFollowup');
+        const doctorName = document.getElementById('doctorName');
+
+// Add new medicine to prescription
+function addNewMedicine() {
+    const name = document.getElementById('newMedicineName').value.trim();
+    const strength = document.getElementById('newMedicineStrength').value.trim();
+    
+    if (!name) {
+        showNotification('Please enter medicine name', 'error');
+        return;
+    }
+    
+    // Add to medication table
+    const medicationBody = document.getElementById('medicationBody');
+    if (medicationBody) {
+        const newRow = `
+            <tr>
+                <td contenteditable="true" oninput="updateTranslationFromPrescription()">${name}</td>
+                <td contenteditable="true" oninput="updateTranslationFromPrescription()">${strength || '--'}</td>
+                <td contenteditable="true" oninput="updateTranslationFromPrescription()">1 tablet</td>
+                <td contenteditable="true" oninput="updateTranslationFromPrescription()">8 hourly</td>
+                <td contenteditable="true" oninput="updateTranslationFromPrescription()">5</td>
+                <td contenteditable="true" oninput="updateTranslationFromPrescription()">After food</td>
+            </tr>
+        `;
+        medicationBody.innerHTML += newRow;
+        
+        // Clear inputs
+        document.getElementById('newMedicineName').value = '';
+        document.getElementById('newMedicineStrength').value = '';
+        
+        // Update translation
+        updateTranslationFromPrescription();
+        
+        showNotification('Medicine added', 'success');
+    }
+}
+
+// Add new instruction
+function addNewInstruction() {
+    const instruction = document.getElementById('newInstruction').value.trim();
+    
+    if (!instruction) {
+        showNotification('Please enter instruction', 'error');
+        return;
+    }
+    
+    // Add to instruction list
+    const instructionList = document.getElementById('rxInstructionList');
+    if (instructionList) {
+        const newItem = `<li contenteditable="true" oninput="updateTranslationFromPrescription()">${instruction}</li>`;
+        instructionList.innerHTML += newItem;
+        
+        // Clear input
+        document.getElementById('newInstruction').value = '';
+        
+        // Update translation
+        updateTranslationFromPrescription();
+        
+        showNotification('Instruction added', 'success');
+    }
+}
+
+// Update main translation area
+function updateMainTranslation() {
+    const prescriptionData = collectPrescriptionData();
+    const language = document.getElementById('languageSelect')?.value || 'Hindi';
+    
+    const translatedText = generateTranslationFromPrescription({
+        ...prescriptionData,
+        language: language
+    });
+    
+    // Update the main translation
+    if (document.getElementById('translatedText')) {
+        const formattedText = formatMedicalText(translatedText);
+        document.getElementById('translatedText').innerHTML = formattedText;
+        
+        // Show results if hidden
+        const initialState = document.getElementById('initialState');
+        const resultState = document.getElementById('resultState');
+        if (initialState && resultState) {
+            initialState.classList.add('d-none');
+            resultState.classList.remove('d-none');
+        }
+        
+        showNotification('Main translation updated from prescription', 'success');
+    }
+}
+
+// Live preview update
+function updateLiveTranslationPreview() {
+    const prescriptionData = collectPrescriptionData();
+    const language = document.getElementById('languageSelect')?.value || 'Hindi';
+    
+    const translatedText = generateTranslationFromPrescription({
+        ...prescriptionData,
+        language: language
+    });
+    
+    const previewElement = document.getElementById('liveTranslationPreview');
+    if (previewElement) {
+        previewElement.innerHTML = formatMedicalText(translatedText);
+    }
+}
+
+// Modify updateTranslationFromPrescription to also update preview
+function updateTranslationFromPrescription() {
+    // Update main translation
+    const prescriptionData = collectPrescriptionData();
+    const language = document.getElementById('languageSelect')?.value || 'Hindi';
+    
+    const translatedText = generateTranslationFromPrescription({
+        ...prescriptionData,
+        language: language
+    });
+    
+    // Update live preview
+    const previewElement = document.getElementById('liveTranslationPreview');
+    if (previewElement) {
+        previewElement.innerHTML = formatMedicalText(translatedText);
+    }
+}
+
+// When on prescription page, sync changes to translator
+function syncPrescriptionToTranslator() {
+    if (!document.getElementById('prescriptionPage')?.classList.contains('active')) {
+        return;
+    }
+    
+    const prescriptionData = collectPrescriptionData();
+    const language = document.getElementById('languageSelect')?.value || 'Hindi';
+    
+    // Generate English medical note from prescription
+    const englishNote = generateEnglishNoteFromPrescription(prescriptionData);
+    
+    // Update the medical input field
+    const medicalInput = document.getElementById('medicalInput');
+    if (medicalInput) {
+        medicalInput.value = englishNote;
+    }
+    
+    // Generate and update translation
+    const translatedText = generateTranslationFromPrescription({
+        ...prescriptionData,
+        language: language
+    });
+    
+    if (document.getElementById('translatedText')) {
+        const formattedText = formatMedicalText(translatedText);
+        document.getElementById('translatedText').innerHTML = formattedText;
+    }
+}
+
+function generateEnglishNoteFromPrescription(prescriptionData) {
+    let englishNote = `DIAGNOSIS: ${prescriptionData.diagnosis}\n\n`;
+    
+    if (prescriptionData.symptoms) {
+        englishNote += `SYMPTOMS: ${prescriptionData.symptoms}\n\n`;
+    }
+    
+    if (prescriptionData.vitals) {
+        englishNote += `VITAL SIGNS:\n`;
+        if (prescriptionData.vitals.weight) englishNote += `• Weight: ${prescriptionData.vitals.weight} kg\n`;
+        if (prescriptionData.vitals.bloodPressure) englishNote += `• BP: ${prescriptionData.vitals.bloodPressure}\n`;
+        if (prescriptionData.vitals.temperature) englishNote += `• Temperature: ${prescriptionData.vitals.temperature}°F\n`;
+        englishNote += '\n';
+    }
+    
+    if (prescriptionData.medications && prescriptionData.medications.length > 0) {
+        englishNote += `PRESCRIBED MEDICATIONS:\n`;
+        prescriptionData.medications.forEach(med => {
+            englishNote += `• ${med.name} (${med.strength}): ${med.dosage} ${med.frequency} ${med.days ? `for ${med.days} days` : ''}\n`;
+        });
+        englishNote += '\n';
+    }
+    
+    if (prescriptionData.instructions && prescriptionData.instructions.length > 0) {
+        englishNote += `INSTRUCTIONS:\n`;
+        prescriptionData.instructions.forEach(instruction => {
+            englishNote += `• ${instruction}\n`;
+        });
+        englishNote += '\n';
+    }
+    
+    if (prescriptionData.warnings && prescriptionData.warnings.length > 0) {
+        englishNote += `WARNINGS:\n`;
+        prescriptionData.warnings.forEach(warning => {
+            englishNote += `• ${warning}\n`;
+        });
+    }
+    
+    return englishNote;
+}
+
+
+// Two-way sync between prescription and translation
+class PrescriptionTranslatorSync {
+    constructor() {
+        this.isSyncing = false;
+        this.setupEventListeners();
+    }
+    
+    setupEventListeners() {
+        // When medical input changes, update prescription
+        const medicalInput = document.getElementById('medicalInput');
+        if (medicalInput) {
+            medicalInput.addEventListener('input', () => {
+                if (!this.isSyncing) {
+                    this.updatePrescriptionFromTranslation();
+                }
+            });
+        }
+        
+        // When prescription changes, update translation
+        const prescriptionElements = [
+            document.getElementById('rxDiagnosis'),
+            document.getElementById('medicationTable'),
+            document.getElementById('rxInstructionList'),
+            document.getElementById('rxWarnings')
+        ].filter(el => el);
+        
+        prescriptionElements.forEach(el => {
+            el.addEventListener('input', () => {
+                if (!this.isSyncing) {
+                    this.updateTranslationFromPrescription();
+                }
+            });
+        });
+    }
+    
+    updatePrescriptionFromTranslation() {
+        this.isSyncing = true;
+        
+        try {
+            const medicalText = document.getElementById('medicalInput').value;
+            
+            // Extract data from medical text
+            const extractedData = this.extractDataFromMedicalText(medicalText);
+            
+            // Update prescription fields
+            this.updatePrescriptionFields(extractedData);
+            
+        } finally {
+            setTimeout(() => {
+                this.isSyncing = false;
+            }, 100);
+        }
+    }
+    
+    updateTranslationFromPrescription() {
+        this.isSyncing = true;
+        
+        try {
+            const prescriptionData = collectPrescriptionData();
+            const language = document.getElementById('languageSelect')?.value || 'Hindi';
+            
+            // Generate translation
+            const translatedText = generateTranslationFromPrescription({
+                ...prescriptionData,
+                language: language
+            });
+            
+            // Update translation display
+            if (document.getElementById('translatedText')) {
+                const formattedText = formatMedicalText(translatedText);
+                document.getElementById('translatedText').innerHTML = formattedText;
+            }
+            
+        } finally {
+            setTimeout(() => {
+                this.isSyncing = false;
+            }, 100);
+        }
+    }
+    
+    extractDataFromMedicalText(text) {
+        // Implement text parsing to extract diagnosis, medications, etc.
+        // This is a simplified version
+        return {
+            diagnosis: this.extractDiagnosis(text),
+            medications: this.extractMedications(text),
+            instructions: this.extractInstructions(text)
+        };
+    }
+    
+    extractDiagnosis(text) {
+        const diagnosisMatch = text.match(/DIAGNOSIS:\s*(.+)/i);
+        return diagnosisMatch ? diagnosisMatch[1].trim() : '';
+    }
+    
+    extractMedications(text) {
+        const medications = [];
+        const medSection = text.match(/MEDICATIONS?:([\s\S]*?)(?=\n\n|INSTRUCTIONS|WARNINGS|$)/i);
+        
+        if (medSection) {
+            const medLines = medSection[1].split('\n');
+            medLines.forEach(line => {
+                if (line.includes('•') || line.includes('-')) {
+                    medications.push({
+                        name: this.extractMedicineName(line),
+                        strength: this.extractMedicineStrength(line),
+                        dosage: this.extractDosage(line)
+                    });
+                }
+            });
+        }
+        
+        return medications;
+    }
+    
+    extractMedicineName(line) {
+        // Simple extraction - can be enhanced
+        const match = line.match(/•\s*([^:(]+)/);
+        return match ? match[1].trim() : '';
+    }
+    
+    updatePrescriptionFields(data) {
+        // Update diagnosis
+        if (data.diagnosis && document.getElementById('rxDiagnosis')) {
+            document.getElementById('rxDiagnosis').textContent = data.diagnosis;
+        }
+        
+        // Update medications table
+        if (data.medications && data.medications.length > 0) {
+            this.updateMedicationTable(data.medications);
+        }
+    }
+    
+    updateMedicationTable(medications) {
+        const medicationBody = document.getElementById('medicationBody');
+        if (medicationBody) {
+            medicationBody.innerHTML = '';
+            
+            medications.forEach(med => {
+                const row = `
+                    <tr>
+                        <td>${med.name}</td>
+                        <td>${med.strength || '--'}</td>
+                        <td>${med.dosage || '1 tablet'}</td>
+                        <td>8 hourly</td>
+                        <td>5</td>
+                        <td>After food</td>
+                    </tr>
+                `;
+                medicationBody.innerHTML += row;
+            });
+        }
+    }
+}
+
+// Initialize sync system
+let prescriptionSync;
+document.addEventListener('DOMContentLoaded', () => {
+    prescriptionSync = new PrescriptionTranslatorSync();
+});
+        // Add prescription button to translator
+function addPrescriptionButton() {
+    const actionButtons = document.getElementById('actionButtons');
+    if (actionButtons) {
+        const prescriptionBtn = document.createElement('button');
+        prescriptionBtn.className = 'btn btn-primary';
+        prescriptionBtn.innerHTML = '<i class="fas fa-file-prescription me-1"></i> Prescription';
+        prescriptionBtn.onclick = showPrescriptionPage;
+        actionButtons.appendChild(prescriptionBtn);
+    }
+}
+
+ // ======================
+// 3. INITIALIZATION (COMBINED)
+// ======================
+document.addEventListener('DOMContentLoaded', function() {
+    console.log(`${APP_NAME} v${VERSION} initialized`);
+
+    // ✅ FORCE START WITH LOGIN PAGE
+    showPage('login');
+
+    // Check for existing session (but don't auto-login)
+    const savedUser = localStorage.getItem('currentUser');
+    if (savedUser) {
+        try {
+            const user = JSON.parse(savedUser);
+            // Pre-fill username for convenience
+            document.getElementById('loginUsername').value = user.username || '';
+            console.log('Pre-filled username from saved session');
+        } catch (e) {
+            console.error('Error parsing saved user:', e);
+            localStorage.removeItem('currentUser');
+        }
+    }
+
+    // Set current date
+    updateCurrentDate();
+
+    // Login button event
+    loginBtn.addEventListener('click', handleLogin);
+
+
+    function resetApp() {
+    if (confirm('Reset app and clear all data?')) {
+        // Clear everything
+        localStorage.clear();
+        sessionStorage.clear();
+        currentUser = null;
+        
+        // Reset forms
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        document.getElementById('rememberMe').checked = false;
+        
+        // Show login page
+        showPage('login');
+        
+        showNotification('App reset successfully', 'success');
+    }
+}
+    function demoAutoLogin() {
+    // Auto-fill demo credentials
+    document.getElementById('loginUsername').value = 'healthworker';
+    document.getElementById('loginPassword').value = 'india123';
+    document.getElementById('rememberMe').checked = false;
+    
+    // Show notification
+    showNotification('Demo credentials loaded. Click Login button.', 'info');
+    
+    // Optional: Auto-click login after 1 second
+    setTimeout(() => {
+        document.getElementById('loginBtn').click();
+    }, 1000);
+}
+    // Enter key login support
+    document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            handleLogin();
+        }
+    });
+
+    // Setup translator events
+    setupTranslatorEvents();
+
+    // Setup session timer
+    setInterval(updateSessionTimer, 1000);
+
+    // ✅ ADDED: Initialize prescription-translation sync
+    if (typeof setupPrescriptionAutoTranslation === 'function') {
+        setupPrescriptionAutoTranslation();
+    }
+
+    // ✅ ADDED: Make prescription fields editable
+    if (typeof makePrescriptionEditable === 'function') {
+        makePrescriptionEditable();
+    }
+
+    // ✅ REMOVE auto-login demo (commented out)
+    // Comment out or remove any auto-login code
+    
+    console.log('App initialization complete');
+});
+
+function makePrescriptionEditable() {
+    // Make diagnosis editable
+    const diagnosisElement = document.getElementById('rxDiagnosis');
+    if (diagnosisElement) {
+        diagnosisElement.setAttribute('contenteditable', 'true');
+        diagnosisElement.style.minHeight = '50px';
+        diagnosisElement.style.border = '1px dashed #ccc';
+        diagnosisElement.style.padding = '5px';
+        diagnosisElement.style.borderRadius = '4px';
+    }
+    
+    // Make medication table editable
+    const medicationTable = document.getElementById('medicationTable');
+    if (medicationTable) {
+        const cells = medicationTable.querySelectorAll('td');
+        cells.forEach(cell => {
+            cell.setAttribute('contenteditable', 'true');
+            cell.style.border = '1px dashed #dee2e6';
+            cell.style.minWidth = '80px';
+        });
+    }
+}
+
+    // Add prescription button
+    addPrescriptionButton();
+;
+       
+        // ======================
+        // 4. AUTHENTICATION FUNCTIONS
+        // ======================
+      function checkExistingSession() {
+    const savedUser = localStorage.getItem('currentUser');
+    const savedTime = localStorage.getItem('loginTime');
+    
+    if (savedUser && savedTime) {
+        const loginTime = new Date(savedTime);
+        const currentTime = new Date();
+        const hoursDiff = (currentTime - loginTime) / (1000 * 60 * 60);
+        
+        // Check if session is expired (24 hours)
+        if (hoursDiff < 24) {
+            // Session is valid, but don't auto-login
+            // Just pre-fill the username
+            const user = JSON.parse(savedUser);
+            document.getElementById('loginUsername').value = user.username || '';
+            console.log('Session found, username pre-filled');
+            
+            // Check if "Remember me" was checked
+            const rememberMe = localStorage.getItem('rememberMe') === 'true';
+            if (rememberMe) {
+                // User wanted to stay logged in
+                currentUser = user;
+                showPage('dashboard');
+                updateDashboard();
+                showNotification(`Welcome back, ${user.name}!`, 'info');
+            }
+            // If not "Remember me", stay on login page
+        } else {
+            // Session expired
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('loginTime');
+            localStorage.removeItem('rememberMe');
+            console.log('Session expired, cleared');
+        }
+    } else {
+        // No saved session
+        console.log('No saved session found');
+    }
+}
+
+        function handleLogin() {
+    const username = loginUsername.value.trim();
+    const password = loginPassword.value;
+    const rememberMe = document.getElementById('rememberMe').checked;
+    
+    if (!username || !password) {
+        showNotification('Please enter both username and password', 'error');
+        return;
+    }
+    
+    // Find user in mock database
+    const user = users.find(u => u.username === username && u.password === password);
+    
+    if (user) {
+        // Login successful
+        currentUser = user;
+        
+        // Save to localStorage based on remember me
+        if (rememberMe) {
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            localStorage.setItem('loginTime', new Date().toISOString());
+            localStorage.setItem('rememberMe', 'true');
+        } else {
+            // Session only - don't save to localStorage
+            sessionStorage.setItem('currentUser', JSON.stringify(user));
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('loginTime');
+            localStorage.removeItem('rememberMe');
+        }
+        
+        // Show success message
+        showNotification(`Welcome back, ${user.name}!`, 'success');
+        
+        // Redirect to dashboard
+        showPage('dashboard');
+        updateDashboard();
+        
+        // Reset session timer
+        sessionTimer = SESSION_TIMEOUT;
+    } else {
+        // Login failed
+        showNotification('Invalid username or password', 'error');
+        loginPassword.value = '';
+        loginPassword.focus();
+    }
+}
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                currentUser = null;
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('loginTime');
+                showPage('login');
+                showNotification('Logged out successfully', 'info');
+            }
+        }
+
+        // ======================
+        // 5. PAGE MANAGEMENT
+        // ======================
+        function showPage(pageName) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Show requested page
+    const pageElement = document.getElementById(pageName + 'Page');
+    if (pageElement) {
+        pageElement.classList.add('active');
+    }
+    
+    // Update page-specific content
+    switch(pageName) {
+        case 'dashboard':
+            updateDashboard();
+            break;
+        case 'translator':
+            setupTranslatorEvents();
+            break;
+        case 'prescription':
+            updatePrescription();
+            break;
+    }
+    
+    // Scroll to top
+    window.scrollTo(0, 0);
+}
+
+    
+
+
+        // ======================
+        // 6. DASHBOARD FUNCTIONS
+        // ======================
+        function updateDashboard() {
+            if (!currentUser) return;
+
+            // Update user info
+            userGreeting.textContent = `Welcome, ${currentUser.name}!`;
+            dashboardUserName.textContent = currentUser.name;
+
+            // Update stats
+            updateDashboardStats();
+
+            // Update recent activity
+            updateRecentActivity();
+        }
+
+        function updateDashboardStats() {
+            // Calculate stats from history
+            const today = new Date().toDateString();
+            const todayTranslations = translationsHistory.filter(t => 
+                new Date(t.timestamp).toDateString() === today
+            );
+
+            const uniqueLanguages = [...new Set(translationsHistory.map(t => t.language))];
+            const uniquePatients = [...new Set(translationsHistory.map(t => t.patientName).filter(name => name))];
+
+            // Update UI
+            totalTranslations.textContent = translationsHistory.length;
+            languagesUsed.textContent = uniqueLanguages.length || 1;
+            patientsServed.textContent = uniquePatients.length;
+            todayCount.textContent = todayTranslations.length;
+        }
+
+        function updateRecentActivity() {
+            if (translationsHistory.length === 0) {
+                recentActivity.innerHTML = `
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-history fa-2x mb-3"></i>
+                        <p>No recent translations yet</p>
+                        <button class="btn btn-sm btn-primary" onclick="showPage('translator')">
+                            Start your first translation
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Show last 5 translations
+            const recent = translationsHistory.slice(-5).reverse();
+            recentActivity.innerHTML = recent.map(translation => `
+                <div class="activity-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>${translation.patientName || 'Anonymous Patient'}</strong>
+                        <small class="text-muted">${formatTimeAgo(translation.timestamp)}</small>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="badge bg-info">${translation.language}</span>
+                        <span class="text-muted-small">${translation.condition || 'Medical Note'}</span>
+                    </div>
+                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="loadTranslation('${translation.id}')">
+                        <i class="fas fa-eye me-1"></i> View
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updateCurrentDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDate.textContent = now.toLocaleDateString('en-US', options);
+            prescriptionDate.textContent = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // ======================
+// 7. TRANSLATOR FUNCTIONS (Your original code + enhancements)
+// ======================
+function setupTranslatorEvents() {
+    // Example buttons
+    document.querySelectorAll('.example-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const exampleType = this.dataset.example;
+            setExample(exampleType);
+        });
+    });
+
+    // Translate button
+    translateBtn.addEventListener('click', translateMedicalNote);
+
+    // Action buttons
+    copyBtn.addEventListener('click', copyToClipboard);
+    whatsappBtn.addEventListener('click', shareViaWhatsApp);
+    newNoteBtn.addEventListener('click', resetForm);
+
+    // Patient info updates
+    patientName.addEventListener('input', updatePatientBadge);
+    patientAge.addEventListener('input', updatePatientBadge);
+    patientGender.addEventListener('change', updatePatientBadge);
+
+    // Vitals extraction on medical input
+    medicalInput.addEventListener('input', updateExtractedVitalsDisplay);
+
+    // Keyboard shortcut
+    medicalInput.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            translateMedicalNote();
+        }
+    });
+}
+
+function setExample(exampleType) {
+    medicalInput.value = examples[exampleType];
+
+    // Auto-fill patient info based on example
+    switch(exampleType) {
+        case 'fever':
+            patientName.value = 'Anjali Mehta';
+            patientAge.value = '35';
+            patientGender.value = 'Female';
+            break;
+        case 'diabetes':
+            patientName.value = 'Rajesh Kumar';
+            patientAge.value = '60';
+            patientGender.value = 'Male';
+            break;
+        case 'wound':
+            patientName.value = 'Arjun Singh';
+            patientAge.value = '8';
+            patientGender.value = 'Male';
+            break;
+        case 'cold':
+            patientName.value = 'Vikram Patel';
+            patientAge.value = '45';
+            patientGender.value = 'Male';
+            break;
+        case 'hypertension':
+            patientName.value = 'Ramesh Verma';
+            patientAge.value = '60';
+            patientGender.value = 'Male';
+            break;
+    }
+
+    updatePatientBadge();
+    updateExtractedVitalsDisplay(); // Also update extracted vitals
+    showNotification(`Loaded ${exampleType} example`, 'info');
+}
+
+function updatePatientBadge() {
+    const name = patientName.value.trim();
+    const age = patientAge.value.trim();
+    const gender = patientGender.value;
+
+    if (name) {
+        patientBadge.textContent = `${name}${age ? `, ${age}` : ''}${gender ? `, ${gender}` : ''}`;
+        patientBadge.classList.remove('bg-secondary');
+        patientBadge.classList.add('bg-primary');
+    } else {
+        patientBadge.textContent = 'No patient';
+        patientBadge.classList.remove('bg-primary');
+        patientBadge.classList.add('bg-secondary');
+    }
+}
+
+// Add this function to extract vitals from medical text
+function extractVitalsFromMedicalNote(medicalText) {
+    const vitals = {
+        weight: null,
+        bp: null,
+        temperature: null
+    };
+
+    const text = medicalText.toLowerCase();
+
+    // Extract weight (patterns like "60 kg", "70kg", "weight: 65", "wt 55")
+    const weightPatterns = [
+        /weight\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:kg|kgs)?/i,
+        /wt\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:kg|kgs)?/i,
+        /(\d+(?:\.\d+)?)\s*kg\s*(?:weight)?/i,
+        /(\d+(?:\.\d+)?)\s*kgs?\s*(?:body\s*weight)?/i
+    ];
+
+    // Extract blood pressure (patterns like "120/80", "BP 140/90", "blood pressure 130/85")
+    const bpPatterns = [
+        /blood\s*pressure\s*[:]?\s*(\d{2,3}\s*\/\s*\d{2,3})/i,
+        /bp\s*[:]?\s*(\d{2,3}\s*\/\s*\d{2,3})/i,
+        /(\d{2,3}\s*\/\s*\d{2,3})\s*(?:mmhg|mmHg)?/i,
+        /(\d{2,3}\/\d{2,3})\s*(?:blood\s*pressure)?/i
+    ];
+
+    // Extract temperature (patterns like "98.6°F", "100 F", "temperature 101.5")
+    const tempPatterns = [
+        /temperature\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:°?F|fahrenheit)?/i,
+        /temp\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:°?F|fahrenheit)?/i,
+        /(\d+(?:\.\d+)?)\s*(?:°?F|fahrenheit)\s*(?:temperature)?/i,
+        /fever\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:°?F)?/i
+    ];
+
+    // Try to extract weight
+    for (const pattern of weightPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+            vitals.weight = match[1];
+            break;
+        }
+    }
+
+    // Try to extract blood pressure
+    for (const pattern of bpPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+            vitals.bp = match[1].replace(/\s/g, ''); // Remove spaces
+            break;
+        }
+    }
+
+    // Try to extract temperature
+    for (const pattern of tempPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+            vitals.temperature = match[1];
+            break;
+        }
+    }
+
+    return vitals;
+}
+
+// Function to update extracted vitals display
+function updateExtractedVitalsDisplay() {
+    const vitals = extractVitalsFromMedicalNote(medicalInput.value);
+
+    const extractedWeight = document.getElementById('extractedWeight');
+    const extractedBP = document.getElementById('extractedBP');
+    const extractedTemp = document.getElementById('extractedTemp');
+
+    if (extractedWeight) {
+        if (vitals.weight) {
+            extractedWeight.textContent = `${vitals.weight} kg`;
+            extractedWeight.classList.add('fw-bold');
+        } else {
+            extractedWeight.textContent = '-- kg';
+            extractedWeight.classList.remove('fw-bold');
+        }
+    }
+
+    if (extractedBP) {
+        if (vitals.bp) {
+            extractedBP.textContent = vitals.bp;
+            extractedBP.classList.add('fw-bold');
+        } else {
+            extractedBP.textContent = '--/--';
+            extractedBP.classList.remove('fw-bold');
+        }
+    }
+
+    if (extractedTemp) {
+        if (vitals.temperature) {
+            extractedTemp.textContent = `${vitals.temperature}°F`;
+            extractedTemp.classList.add('fw-bold');
+        } else {
+            extractedTemp.textContent = '--°F';
+            extractedTemp.classList.remove('fw-bold');
+        }
+    }
+}
+
+async function translateMedicalNote() {
+    const text = medicalInput.value.trim();
+    const language = languageSelect.value;
+
+    // Validation
+    if (!text) {
+        showError('Please enter a medical note first!');
+        return;
+    }
+
+    if (text.length < 10) {
+        showError('Please enter a more detailed medical note (at least 10 characters)');
+        return;
+    }
+
+    // Extract and auto-fill vitals from medical note
+    const extractedVitals = extractVitalsFromMedicalNote(text);
+
+    // Auto-fill vital signs if detected
+    if (extractedVitals.weight && !document.getElementById('patientWeight')?.value) {
+        const weightInput = document.getElementById('patientWeight');
+        if (weightInput) weightInput.value = extractedVitals.weight;
+    }
+    if (extractedVitals.bp && !document.getElementById('patientBP')?.value) {
+        const bpInput = document.getElementById('patientBP');
+        if (bpInput) bpInput.value = extractedVitals.bp;
+    }
+    if (extractedVitals.temperature && !document.getElementById('patientTemp')?.value) {
+        const tempInput = document.getElementById('patientTemp');
+        if (tempInput) tempInput.value = extractedVitals.temperature;
+    }
+
+    // Update extracted vitals display
+    updateExtractedVitalsDisplay();
+
+    // Show loading state
+    btnText.textContent = 'Translating...';
+    loadingSpinner.style.display = 'inline-block';
+    translateBtn.disabled = true;
+
+    try {
+        // This await is inside an async function - CORRECT
+        const result = await mockAPICall(text, language);
+
+        // Display results
+        showResults(result, language);
+
+        // Auto-save if patient info is provided
+        if (patientName.value.trim()) {
+            setTimeout(saveTranslation, 500);
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Translation failed. Please try again.');
+    } finally {
+        // Reset button
+        btnText.textContent = 'Translate & Simplify';
+        loadingSpinner.style.display = 'none';
+        translateBtn.disabled = false;
+    }
+}
+
+async function mockAPICall(text, language) {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    // Mock responses
+    const mockResponses = {
+        'Hindi': `CONDITION: पेट का संक्रमण
+व्याख्या: बच्चे के पेट में हल्का संक्रमण है जिससे दस्त हो रहे हैं।
+क्या करें:
+• हर दस्त के बाद ORS (जलजीवन घोल) का 1 गिलास पिलाएं
+• केले, चावल, सेब की प्यूरी और टोस्ट खिलाएं
+• आराम करने दें और खूब पानी पिलाएं
+चेतावनी: डॉक्टर के पास तुरंत जाएं अगर:
+• 3 दिन से ज्यादा दस्त रहना
+• मुंह सूखना या आँखों में आंसू न आना
+• 102°F से ज्यादा बुखार आना
+• मल में खून आना`,
+
+        'Telugu': `CONDITION: కడుపు ఇన్ఫెక్షన్
+వివరణ: పిల్లవాడి కడుపులో చిన్న ఇన్ఫెక్షన్ ఉంది, దీని వల్ల అతనికి విరేచనాలు అవుతున్నాయి.
+ఏమి చేయాలి:
+• ప్రతి విరేచనం తర్వాత ORS ద్రావణం 1 గ్లాస్ ఇవ్వండి
+• అరటి పండు, బియ్యం, ఆపిల్ ప్యూరీ మరియు టోస్ట్ ఇవ్వండి
+• విశ్రాంతి తీసుకోనివ్వండి మరియు ఎక్కువ నీరు ఇవ్వండి
+హెచ్చరిక: ఈ లక్షణాలు ఉంటే వెంటనే డాక్టర్ వద్దకు వెళ్లండి:
+• 3 రోజుల కంటే ఎక్కువ విరేచనాలు కొనసాగితే
+• నోరు ఎండిపోవడం లేదా కళ్లలో కన్నీరు లేకపోవడం
+• 102°F కంటే ఎక్కువ జ్వరం వస్తే
+• మలంలో రక్తం కనిపించినా`,
+
+        'Tamil': `CONDITION: வயிற்று தொற்று
+விளக்கம்: குழந்தையின் வயிற்றில் ஒரு சிறிய தொற்று உள்ளது, இதனால் வயிற்றுப்போக்கு ஏற்படுகிறது.
+என்ன செய்ய வேண்டும்:
+• ஒவ்வொரு வயிற்றுப்போக்கிற்கும் பிறகு ORS கரைசல் 1 கிளாஸ் கொடுக்கவும்
+• வாழைப்பழம், அரிசி, ஆப்பிள் பியூரி மற்றும் டோஸ்ட் கொடுக்கவும்
+• ஓய்வு எடுக்கச் சொல்லுங்கள் மற்றும் அதிக தண்ணீர் கொடுக்கவும்
+எச்சரிக்கை: இந்த அறிகுறிகள் இருந்தால் உடனடியாக மருத்துவரை பார்க்கவும்:
+• 3 நாட்களுக்கு மேல் வயிற்றுப்போக்கு இருந்தால்
+• வாய் வறண்டு போவது அல்லது கண்ணீர் வராமல் இருப்பது
+• 102°F க்கு மேல் காய்ச்சல் வந்தால்
+• மலத்தில் இரத்தம் காணப்பட்டால்`
+    };
+
+    return mockResponses[language] || mockResponses['Hindi'];
+}
+
+        function showResults(text, language) {
+            // Hide initial state, show results
+            initialState.classList.add('d-none');
+            resultState.classList.remove('d-none');
+            actionButtons.classList.remove('d-none');
+
+            // Update language badge
+            languageBadge.textContent = language;
+            languageBadge.className = 'badge bg-info language-badge';
+
+            // Format and display text
+            const formattedText = formatMedicalText(text);
+            translatedText.innerHTML = formattedText;
+
+            // Smooth scroll to results
+            resultState.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function formatMedicalText(text) {
+            let html = text;
+
+            // Highlight sections
+            html = html.replace(/(CONDITION:|व्याख्या:|వివరణ:|விளக்கம்:|ఏమి చేయాలి:|क्या करें:|என்ன செய்ய வேண்டும்:|चेतावनी:|హెచ్చరిక:|எச்சரிக்கை:)/g, 
+                '<strong class="text-primary d-block mt-3">$1</strong>');
+
+            // Convert bullet points
+            html = html.replace(/•/g, '<li class="mb-2">');
+            html = html.replace(/(<li.*<\/li>)/gs, '<ul class="mt-2 ps-3">$1</ul>');
+
+            // Add warning styling
+            if (html.includes('चेतावनी') || html.includes('హెచ్చరిక') || html.includes('எச்சரிக்கை')) {
+                const warningIndex = html.indexOf('<strong');
+                if (warningIndex !== -1) {
+                    const beforeWarning = html.substring(0, warningIndex);
+                    const warningAndAfter = html.substring(warningIndex);
+                    html = beforeWarning + '<div class="medical-alert">' + warningAndAfter + '</div>';
+                }
+            }
+
+            // Add line breaks
+            html = html.replace(/\n\n/g, '<br><br>');
+            html = html.replace(/\n/g, '<br>');
+
+            return html;
+        }
+
+        function saveTranslation() {
+            if (!currentUser) {
+                showNotification('Please login to save translations', 'error');
+                return;
+            }
+
+            const translation = {
+                id: 'trans-' + Date.now(),
+                patientName: patientName.value.trim(),
+                patientAge: patientAge.value,
+                patientGender: patientGender.value,
+                originalNote: medicalInput.value.trim(),
+                translatedNote: translatedText.innerText,
+                language: languageSelect.value,
+                timestamp: new Date().toISOString(),
+                condition: extractCondition(translatedText.innerText),
+                savedBy: currentUser.name
+            };
+
+            // Add to history
+            translationsHistory.push(translation);
+
+            // Save to localStorage
+            localStorage.setItem('translationsHistory', JSON.stringify(translationsHistory));
+
+            // Update dashboard stats
+            updateDashboardStats();
+
+            showNotification('Translation saved successfully!', 'success');
+        }
+
+        function loadTranslation(id) {
+            const translation = translationsHistory.find(t => t.id === id);
+            if (translation) {
+                // Fill the form
+                patientName.value = translation.patientName || '';
+                patientAge.value = translation.patientAge || '';
+                patientGender.value = translation.patientGender || '';
+                medicalInput.value = translation.originalNote;
+                languageSelect.value = translation.language;
+
+                // Show results
+                const formattedText = formatMedicalText(translation.translatedNote);
+                translatedText.innerHTML = formattedText;
+
+                initialState.classList.add('d-none');
+                resultState.classList.remove('d-none');
+                actionButtons.classList.remove('d-none');
+
+                updatePatientBadge();
+                languageBadge.textContent = translation.language;
+
+                showNotification('Translation loaded', 'info');
+                showPage('translator');
+            }
+        }
+
+        // ======================
+        // 8. PRESCRIPTION FUNCTIONS
+        // ======================
+        function generatePrescription() {
+            if (!translatedText.innerText) {
+                showNotification('Please translate a medical note first', 'error');
+                return;
+            }
+
+            // Generate prescription ID
+            const prescriptionIdNum = translationsHistory.length + 1;
+            prescriptionId.textContent = `AS-2024-${String(prescriptionIdNum).padStart(3, '0')}`;
+
+            // Update patient info
+            prescriptionPatientName.textContent = patientName.value.trim() || 'Not specified';
+            prescriptionPatientAge.textContent = patientAge.value || '--';
+            prescriptionPatientGender.textContent = patientGender.value || '--';
+
+            // Update doctor info
+            doctorName.textContent = currentUser ? currentUser.name : 'Healthcare Professional';
+
+            // Extract information from translation
+            const text = translatedText.innerText;
+            const lines = text.split('\n');
+
+            // Find condition
+            let condition = '';
+            for (const line of lines) {
+                if (line.includes('CONDITION:') || line.includes('Diagnosis:')) {
+                    condition = line.split(':')[1]?.trim() || 'Not specified';
+                    break;
+                }
+            }
+            prescriptionDiagnosis.textContent = condition || 'No diagnosis entered';
+
+            // Find instructions
+            let instructionsHtml = '';
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes('क्या करें:') || lines[i].includes('Instructions:') || lines[i].includes('DO THIS:')) {
+                    for (let j = i + 1; j < lines.length; j++) {
+                        if (lines[j].trim() && !lines[j].includes('चेतावनी') && !lines[j].includes('WARNING')) {
+                            instructionsHtml += `<p>• ${lines[j].trim()}</p>`;
+                        } else {
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+            prescriptionInstructions.innerHTML = instructionsHtml || '<p class="text-muted">No instructions provided</p>';
+
+            // Find warnings
+            let warningsHtml = '';
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes('चेतावनी') || lines[i].includes('WARNING')) {
+                    for (let j = i + 1; j < lines.length; j++) {
+                        if (lines[j].trim()) {
+                            warningsHtml += `<p class="text-danger">• ${lines[j].trim()}</p>`;
+                        }
+                    }
+                    break;
+                }
+            }
+            prescriptionWarnings.innerHTML = warningsHtml || '<p class="text-muted">No specific warnings</p>';
+
+            // Set follow-up
+            prescriptionFollowup.textContent = 'Follow up in 3 days or if symptoms worsen';
+
+            // Generate medication list (simplified)
+            const medText = medicalInput.value.toLowerCase();
+            let medicationHtml = '';
+
+            if (medText.includes('paracetamol') || medText.includes('acetaminophen')) {
+                medicationHtml += `
+                    <div class="medication-item">
+                        <div class="row">
+                            <div class="col-md-6"><strong>Medicine:</strong> Paracetamol</div>
+                            <div class="col-md-3"><strong>Dosage:</strong> 500mg</div>
+                            <div class="col-md-3"><strong>Duration:</strong> As needed</div>
+                        </div>
+                        <small class="text-muted">For fever and pain relief</small>
+                    </div>
+                `;
+            }
+
+            if (medText.includes('ors') || medText.includes('oral rehydration')) {
+                medicationHtml += `
+                    <div class="medication-item">
+                        <div class="row">
+                            <div class="col-md-6"><strong>Medicine:</strong> ORS Solution</div>
+                            <div class="col-md-3"><strong>Dosage:</strong> 200-500ml</div>
+                            <div class="col-md-3"><strong>Duration:</strong> After each loose stool</div>
+                        </div>
+                        <small class="text-muted">For rehydration</small>
+                    </div>
+                `;
+            }
+
+            prescriptionMedication.innerHTML = medicationHtml || `
+                <div class="medication-item">
+                    <div class="row">
+                        <div class="col-md-6"><strong>Medicine:</strong> As per doctor's advice</div>
+                        <div class="col-md-3"><strong>Dosage:</strong> --</div>
+                        <div class="col-md-3"><strong>Duration:</strong> --</div>
+                    </div>
+                </div>
+            `;
+
+            // Show prescription page
+            showPage('prescription');
+            showNotification('Prescription generated successfully!', 'success');
+        }
+
+        function updatePrescription() {
+            // This function would update the prescription with current data
+            // Currently handled by generatePrescription
+        }
+
+        function printPrescription() {
+            window.print();
+        }
+
+        function sharePrescription() {
+            const prescriptionData = {
+                patient: prescriptionPatientName.textContent,
+                diagnosis: prescriptionDiagnosis.textContent,
+                date: prescriptionDate.textContent,
+                id: prescriptionId.textContent
+            };
+
+            const message = `🏥 Aarogya-Sahayak Prescription
+Patient: ${prescriptionData.patient}
+Diagnosis: ${prescriptionData.diagnosis}
+Date: ${prescriptionData.date}
+ID: ${prescriptionData.id}
+Show this prescription to your pharmacist.`;
+
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        }
+
+        // ======================
+        // 9. UTILITY FUNCTIONS
+        // ======================
+        function showError(message) {
+            showNotification(message, 'error');
+        }
+
+        function showNotification(message, type = 'info') {
+            const alertClass = {
+                'success': 'alert-success',
+                'error': 'alert-danger',
+                'warning': 'alert-warning',
+                'info': 'alert-info'
+            }[type];
+
+            const icon = {
+                'success': 'fa-check-circle',
+                'error': 'fa-exclamation-triangle',
+                'warning': 'fa-exclamation-circle',
+                'info': 'fa-info-circle'
+            }[type];
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert ${alertClass} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.maxWidth = '300px';
+            alertDiv.innerHTML = `
+                <i class="fas ${icon} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(alertDiv);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function copyToClipboard() {
+            const textToCopy = translatedText.innerText;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showNotification('Copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                showNotification('Copy failed. Please select and copy manually.', 'error');
+            });
+        }
+
+        function shareViaWhatsApp() {
+            const text = translatedText.innerText;
+            const language = languageSelect.value;
+            const patient = patientName.value.trim();
+
+            const message = `🏥 Aarogya-Sahayak - Medical Instructions
+${patient ? `Patient: ${patient}\n` : ''}Language: ${language}
+${text}
+Generated by Aarogya-Sahayak AI Translator`;
+
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        }
+
+        function resetForm() {
+            medicalInput.value = '';
+            patientName.value = '';
+            patientAge.value = '';
+            patientGender.value = '';
+            resultState.classList.add('d-none');
+            actionButtons.classList.add('d-none');
+            initialState.classList.remove('d-none');
+            medicalInput.focus();
+            updatePatientBadge();
+
+            showNotification('Form reset. Ready for new patient!', 'info');
+        }
+
+        function extractCondition(text) {
+            const match = text.match(/CONDITION:\s*([^\n]+)/i);
+            return match ? match[1].trim() : 'General Condition';
+        }
+
+        function formatTimeAgo(timestamp) {
+            const now = new Date();
+            const past = new Date(timestamp);
+            const diffMs = now - past;
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return past.toLocaleDateString();
+        }
+
+        function updateSessionTimer() {
+            if (!currentUser) return;
+
+            sessionTimer--;
+
+            if (sessionTimer <= 0) {
+                logout();
+                showNotification('Session expired. Please login again.', 'warning');
+                return;
+            }
+
+            const minutes = Math.floor(sessionTimer / 60);
+            const seconds = sessionTimer % 60;
+            sessionTimerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function viewHistory() {
+            if (translationsHistory.length === 0) {
+                showNotification('No translation history yet', 'info');
+                return;
+            }
+
+            let historyHtml = '<h5>Translation History</h5>';
+            translationsHistory.slice().reverse().forEach((trans, index) => {
+                historyHtml += `
+                    <div class="card mb-2">
+                        <div class="card-body">
+                            <h6>${trans.patientName || 'Anonymous'} - ${trans.language}</h6>
+                            <p class="small text-muted">${new Date(trans.timestamp).toLocaleString()}</p>
+                            <p class="small">${trans.condition || 'Medical note'}</p>
+                            <button class="btn btn-sm btn-outline-primary" onclick="loadTranslation('${trans.id}')">
+                                Load
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Create modal for history
+            const modalHtml = `
+                <div class="modal fade" id="historyModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Translation History</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="historyContent">
+                                    ${historyHtml}
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remove existing modal if any
+            const existingModal = document.getElementById('historyModal');
+            if (existingModal) existingModal.remove();
+
+            // Add new modal
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('historyModal'));
+            modal.show();
+        }
+
+        // ======================
+        // 10. DEMO MODE NOTIFICATION
+        // ======================
+        window.onload = function() {
+            // Show demo mode notification after 2 seconds
+            setTimeout(() => {
+                if (!currentUser) {
+                    const demoAlert = document.createElement('div');
+                    demoAlert.className = 'alert alert-warning alert-dismissible fade show position-fixed top-0 end-0 m-3';
+                    demoAlert.style.zIndex = '9999';
+                    demoAlert.style.maxWidth = '300px';
+                    demoAlert.innerHTML = `
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Demo Mode</strong><br>
+                        Using mock data. Try login with demo credentials.
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.body.appendChild(demoAlert);
+                }
+            }, 2000);
+        };
+        function syncPatientDataToPrescription() {
+    // Get values from translator form
+    const name = patientName.value.trim();
+    const age = patientAge.value;
+    const gender = patientGender.value;
+    const weight = document.getElementById('patientWeight')?.value;
+    const bp = document.getElementById('patientBP')?.value;
+    const temp = document.getElementById('patientTemp')?.value;
+
+    // Update prescription with patient data
+    if (document.getElementById('rxPatientName')) {
+        document.getElementById('rxPatientName').textContent = name || 'Not Specified';
+    }
+    if (document.getElementById('rxPatientAge')) {
+        document.getElementById('rxPatientAge').textContent = age || '--';
+    }
+    if (document.getElementById('rxPatientGender')) {
+        document.getElementById('rxPatientGender').textContent = gender || '--';
+    }
+    if (document.getElementById('rxPatientWeight') && weight) {
+        document.getElementById('rxPatientWeight').textContent = `${weight} kg`;
+    }
+    if (document.getElementById('rxPatientBP') && bp) {
+        document.getElementById('rxPatientBP').textContent = bp;
+    }
+
+    return { name, age, gender, weight, bp, temp };
+}
+
+
+
+        // ======================
+// PRESCRIPTION GENERATOR FUNCTIONS
+// ======================
+
+
+const medicineDatabase = {
+    'fever': [
+        { name: 'Paracetamol', strength: '500mg', dosage: '1 tablet', frequency: '6-8 hourly', days: '3', timing: 'After food' },
+        { name: 'Ibuprofen', strength: '400mg', dosage: '1 tablet', frequency: '8 hourly', days: '3', timing: 'After food' }
+    ],
+    'cough': [
+        { name: 'Dextromethorphan', strength: '15mg', dosage: '1 tablet', frequency: '6-8 hourly', days: '5', timing: 'As needed' },
+        { name: 'Guaifenesin', strength: '200mg', dosage: '1 tablet', frequency: '8 hourly', days: '5', timing: 'With water' }
+    ],
+    'infection': [
+        { name: 'Amoxicillin', strength: '500mg', dosage: '1 capsule', frequency: '8 hourly', days: '7', timing: 'After food' },
+        { name: 'Azithromycin', strength: '500mg', dosage: '1 tablet', frequency: 'Once daily', days: '3', timing: '1 hour before food' }
+    ],
+    'pain': [
+        { name: 'Diclofenac', strength: '50mg', dosage: '1 tablet', frequency: '8-12 hourly', days: '5', timing: 'After food' },
+        { name: 'Naproxen', strength: '250mg', dosage: '1 tablet', frequency: '12 hourly', days: '5', timing: 'After food' }
+    ],
+    'allergy': [
+        { name: 'Cetirizine', strength: '10mg', dosage: '1 tablet', frequency: 'Once daily', days: '5', timing: 'Bedtime' },
+        { name: 'Loratadine', strength: '10mg', dosage: '1 tablet', frequency: 'Once daily', days: '5', timing: 'Morning' }
+    ],
+    'diabetes': [
+        { name: 'Metformin', strength: '500mg', dosage: '1 tablet', frequency: 'Twice daily', days: '30', timing: 'With meals' },
+        { name: 'Glibenclamide', strength: '5mg', dosage: '1 tablet', frequency: 'Once daily', days: '30', timing: 'Morning' }
+    ],
+    'hypertension': [
+        { name: 'Amlodipine', strength: '5mg', dosage: '1 tablet', frequency: 'Once daily', days: '30', timing: 'Morning' },
+        { name: 'Losartan', strength: '50mg', dosage: '1 tablet', frequency: 'Once daily', days: '30', timing: 'Morning' }
+    ]
+
+};
+
+// Investigations Database
+const investigationsDatabase = [
+    'Complete Blood Count (CBC)',
+    'Blood Sugar Fasting & PP',
+    'Lipid Profile',
+    'Liver Function Test',
+    'Kidney Function Test',
+    'Urine Routine & Microscopy',
+    'Chest X-Ray',
+    'ECG',
+    'Ultrasound Abdomen',
+    'Thyroid Profile'
+];
+
+
+
+
+// Extract diagnosis from translation
+function extractDiagnosis(text) {
+    const lines = text.split('\n');
+    for (const line of lines) {
+        if (line.includes('CONDITION:')) {
+            return line.split('CONDITION:')[1]?.trim() || 'General Medical Condition';
+        }
+    }
+
+    // Fallback: Check English note for diagnosis
+    const englishNote = medicalInput.value.toLowerCase();
+    if (englishNote.includes('diagnosis:')) {
+        const match = medicalInput.value.match(/diagnosis:\s*(.+)/i);
+        return match ? match[1].trim() : 'General Medical Condition';
+    }
+
+    return 'General Medical Condition';
+}
+
+// Extract symptoms
+// Make sure this function exists and handles undefined input
+function extractSymptoms(text) {
+    if (!text) return 'Not specified';
+    
+    const lines = text.split('\n');
+    const symptoms = [];
+    
+    for (const line of lines) {
+        if (line.toLowerCase().includes('symptoms:')) {
+            return line.split(':')[1]?.trim() || 'Not specified';
+        }
+        if (line.toLowerCase().includes('fever')) symptoms.push('Fever');
+        if (line.toLowerCase().includes('cough')) symptoms.push('Cough');
+        if (line.toLowerCase().includes('pain')) symptoms.push('Pain');
+        if (line.toLowerCase().includes('cold')) symptoms.push('Cold');
+    }
+    
+    return symptoms.length > 0 ? symptoms.join(', ') : 'Not specified';
+}
+
+// Auto-select medicines based on diagnosis
+function autoSelectMedicines(diagnosis) {
+    const medicationBody = document.getElementById('medicationBody');
+    medicationBody.innerHTML = '';
+
+    let selectedMeds = [];
+
+    // Map diagnosis to medicine categories
+    if (diagnosis.includes('fever') || diagnosis.includes('flu')) {
+        selectedMeds = [...medicineDatabase.fever];
+    } else if (diagnosis.includes('cough') || diagnosis.includes('cold')) {
+        selectedMeds = [...medicineDatabase.cough, ...medicineDatabase.fever.slice(0,1)];
+    } else if (diagnosis.includes('infection')) {
+        selectedMeds = [...medicineDatabase.infection, ...medicineDatabase.fever.slice(0,1)];
+    } else if (diagnosis.includes('pain')) {
+        selectedMeds = [...medicineDatabase.pain];
+    } else if (diagnosis.includes('allergy')) {
+        selectedMeds = [...medicineDatabase.allergy];
+    } else if (diagnosis.includes('diabet')) {
+        selectedMeds = [...medicineDatabase.diabetes];
+    } else if (diagnosis.includes('hypertens') || diagnosis.includes('blood pressure')) {
+        selectedMeds = [...medicineDatabase.hypertension];
+    } else {
+        // Default medicines
+        selectedMeds = [...medicineDatabase.fever.slice(0,1)];
+    }
+
+    // Add ORS for gastroenteritis/diarrhea
+    if (diagnosis.includes('gastro') || diagnosis.includes('diarr')) {
+        selectedMeds.push({
+            name: 'ORS Solution',
+            strength: 'Sachet',
+            dosage: '1 sachet in 1L water',
+            frequency: 'After each loose stool',
+            days: 'As needed',
+            timing: 'Throughout day'
+        });
+    }
+
+    // Add multivitamin
+    selectedMeds.push({
+        name: 'Multivitamin',
+        strength: 'Tablet',
+        dosage: '1 tablet',
+        frequency: 'Once daily',
+        days: '30',
+        timing: 'Morning'
+    });
+
+    // Populate medication table
+    selectedMeds.forEach((med, index) => {
+        const row = `
+            <tr>
+                <td>${med.name}</td>
+                <td>${med.strength}</td>
+                <td>${med.dosage}</td>
+                <td>${med.frequency}</td>
+                <td>${med.days}</td>
+                <td>${med.timing}</td>
+            </tr>
+        `;
+        medicationBody.innerHTML += row;
+    });
+
+    // Update instructions
+    document.getElementById('rxInstructions').innerHTML = 
+        `<i class="fas fa-info-circle"></i> Take medicines exactly as prescribed. Complete full antibiotic course.`;
+}
+
+// Auto-select investigations
+function autoSelectInvestigations(diagnosis) {
+    const investigationsList = document.getElementById('investigationsList');
+    investigationsList.innerHTML = '';
+
+    let selectedInvestigations = [];
+
+    // Select investigations based on diagnosis
+    if (diagnosis.includes('fever')) {
+        selectedInvestigations = [0, 1, 6]; // CBC, Blood Sugar, Chest X-Ray
+    } else if (diagnosis.includes('diabet')) {
+        selectedInvestigations = [1, 2, 9]; // Blood Sugar, Lipid, Thyroid
+    } else if (diagnosis.includes('hypertens')) {
+        selectedInvestigations = [2, 3, 4, 7]; // Lipid, LFT, KFT, ECG
+    } else if (diagnosis.includes('pain') && diagnosis.includes('abdomen')) {
+        selectedInvestigations = [0, 3, 4, 5, 8]; // CBC, LFT, KFT, Urine, USG
+    } else {
+        selectedInvestigations = [0, 5]; // CBC, Urine
+    }
+
+    // Add investigations to list
+    selectedInvestigations.forEach(index => {
+        if (index < investigationsDatabase.length) {
+            const investigation = investigationsDatabase[index];
+            const item = `
+                <div class="investigation-item">
+                    <input type="checkbox" id="inv${index}" checked>
+                    <label for="inv${index}">${investigation}</label>
+                </div>
+            `;
+            investigationsList.innerHTML += item;
+        }
+    });
+}
+
+// Extract instructions from translation
+function extractInstructions(text) {
+    const lines = text.split('\n');
+    const instructions = [];
+    let captureInstructions = false;
+
+    for (const line of lines) {
+        const trimmedLine = line.trim();
+
+        if (trimmedLine.includes('क्या करें:') || 
+            trimmedLine.includes('DO THIS:') || 
+            trimmedLine.includes('INSTRUCTIONS:')) {
+            captureInstructions = true;
+            continue;
+        }
+
+        if (captureInstructions) {
+            if (trimmedLine.includes('चेतावनी') || 
+                trimmedLine.includes('WARNING') || 
+                trimmedLine.includes('FOLLOW-UP')) {
+                break;
+            }
+
+            if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
+                instructions.push(trimmedLine.substring(1).trim());
+            } else if (trimmedLine) {
+                instructions.push(trimmedLine);
+            }
+        }
+    }
+
+    return instructions.length > 0 ? instructions : [
+        'Take medicines after food',
+        'Drink plenty of water',
+        'Take adequate rest',
+        'Follow up as scheduled'
+    ];
+}
+
+// Update instruction list
+function updateInstructionList(instructions) {
+    const instructionList = document.getElementById('rxInstructionList');
+    instructionList.innerHTML = '';
+
+    instructions.forEach(instruction => {
+        instructionList.innerHTML += `<li>${instruction}</li>`;
+    });
+}
+
+// Extract warnings from translation
+function extractWarnings(text) {
+    const lines = text.split('\n');
+    const warnings = [];
+    let captureWarnings = false;
+
+    for (const line of lines) {
+        const trimmedLine = line.trim();
+
+        if (trimmedLine.includes('चेतावनी') || 
+            trimmedLine.includes('WARNING') || 
+            trimmedLine.includes('RETURN IF:')) {
+            captureWarnings = true;
+            continue;
+        }
+
+        if (captureWarnings) {
+            if (trimmedLine.includes('FOLLOW-UP') || trimmedLine === '') {
+                break;
+            }
+
+            if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
+                warnings.push(trimmedLine.substring(1).trim());
+            } else if (trimmedLine) {
+                warnings.push(trimmedLine);
+            }
+        }
+    }
+
+    if (warnings.length > 0) {
+        return 'Return immediately if:<br>' + 
+               warnings.map(w => `<strong>• ${w}</strong>`).join('<br>');
+    }
+
+    return 'Return immediately if: High fever, difficulty breathing, rash, severe pain, or worsening symptoms.';
+}
+
+// Generate QR code placeholder
+function generateQRPlaceholder(rxId) {
+    const qrPlaceholder = document.getElementById('qrCodePlaceholder');
+    qrPlaceholder.innerHTML = `
+        <div class="qr-icon">
+            <i class="fas fa-qrcode fa-3x"></i>
+        </div>
+        <p class="qr-text">Prescription QR Code</p>
+        <p class="qr-id">ID: ${rxId}</p>
+        <p class="small">Scan to verify prescription</p>
+        <div class="qr-grid">
+            <div class="qr-square"></div><div class="qr-square"></div><div class="qr-square"></div><div class="qr-square"></div>
+            <div class="qr-square"></div><div class="qr-square"></div><div class="qr-square"></div><div class="qr-square"></div>
+            <div class="qr-square"></div><div class="qr-square"></div><div class="qr-square"></div><div class="qr-square"></div>
+        </div>
+    `;
+
+    // Add QR grid styling
+    const style = document.createElement('style');
+    style.textContent = `
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            margin: 10px auto;
+            width: 80px;
+        }
+        .qr-square {
+            width: 18px;
+            height: 18px;
+            background: #000;
+        }
+        .qr-square:nth-child(1),
+        .qr-square:nth-child(4),
+        .qr-square:nth-child(13),
+        .qr-square:nth-child(16) {
+            background: #0d6efd;
+        }
+    `;
+    qrPlaceholder.appendChild(style);
+}
+
+// Update prescription preview
+function updatePrescriptionPreview() {
+    const preview = document.getElementById('prescriptionPreview');
+
+    const patientName = document.getElementById('rxPatientName').textContent;
+    const diagnosis = document.getElementById('rxDiagnosis').textContent;
+    const medicines = document.querySelectorAll('#medicationTable tbody tr');
+
+    let medicinesHtml = '';
+    medicines.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        medicinesHtml += `
+            <div class="preview-med">
+                <strong>${cells[0].textContent}</strong> - ${cells[1].textContent}, 
+                ${cells[2].textContent} ${cells[3].textContent} for ${cells[4].textContent} days
+            </div>
+        `;
+    });
+
+    preview.innerHTML = `
+        <h6>Prescription Summary</h6>
+        <p><strong>Patient:</strong> ${patientName}</p>
+        <p><strong>Diagnosis:</strong> ${diagnosis}</p>
+        <div class="mt-2">
+            <strong>Medications:</strong>
+            ${medicinesHtml}
+        </div>
+        <p class="mt-2 small text-muted">Full prescription details above</p>
+    `;
+}
+
+// Print prescription
+function printPrescription() {
+    // Add print-specific styling
+    const printStyle = document.createElement('style');
+    printStyle.textContent = `
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .prescription-container, .prescription-container * {
+                visibility: visible;
+            }
+            .prescription-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none;
+                box-shadow: none;
+                padding: 20px;
+            }
+            .action-buttons, .nav-bar, .prescription-preview {
+                display: none !important;
+            }
+            .section {
+                break-inside: avoid;
+            }
+        }
+    `;
+    document.head.appendChild(printStyle);
+
+    // Trigger print
+    window.print();
+
+    // Remove print style after printing
+    setTimeout(() => {
+        document.head.removeChild(printStyle);
+    }, 1000);
+}
+
+// Download as PDF (simulated)
+function downloadPrescription() {
+    showNotification('Generating PDF... This would generate a PDF in real implementation', 'info');
+
+    // Create download link with prescription data
+    const prescriptionData = {
+        patient: document.getElementById('rxPatientName').textContent,
+        diagnosis: document.getElementById('rxDiagnosis').textContent,
+        date: document.getElementById('prescriptionDate').textContent,
+        id: document.getElementById('prescriptionId').textContent,
+        doctor: document.getElementById('rxDoctorName').textContent
+    };
+
+    const dataStr = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(prescriptionData, null, 2))}`;
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `prescription_${prescriptionData.id}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    document.body.removeChild(downloadAnchor);
+
+    showNotification('Prescription data saved for PDF generation', 'success');
+}
+
+// Send prescription via SMS
+function sendPrescriptionSMS() {
+    const patientName = document.getElementById('rxPatientName').textContent;
+    const diagnosis = document.getElementById('rxDiagnosis').textContent;
+    const rxId = document.getElementById('prescriptionId').textContent;
+
+    const smsText = `Aarogya-Sahayak Prescription
+Patient: ${patientName}
+Diagnosis: ${diagnosis}
+RX ID: ${rxId}
+Show to pharmacist. Keep safe.`;
+
+    const phone = prompt('Enter patient phone number:', '+91');
+    if (phone) {
+        // Create SMS link
+        const smsLink = `sms:${phone}?body=${encodeURIComponent(smsText)}`;
+        window.location.href = smsLink;
+    }
+}
+
+// Share prescription via WhatsApp
+function sharePrescriptionWhatsApp() {
+    const patientName = document.getElementById('rxPatientName').textContent;
+    const diagnosis = document.getElementById('rxDiagnosis').textContent;
+    const rxId = document.getElementById('prescriptionId').textContent;
+    const date = document.getElementById('prescriptionDate').textContent;
+
+    const message = `🏥 *Aarogya-Sahayak Digital Prescription*
+    
+*Patient:* ${patientName}
+*Diagnosis:* ${diagnosis}
+*Date:* ${date}
+*Prescription ID:* ${rxId}
+*Instructions:*
+- Show this to your pharmacist
+- Keep original for medical records
+- Do not share medicines
+- Complete full course
+*Verification:* Digitally signed by Aarogya-Sahayak
+*Valid for:* 30 days
+*Emergency:* Contact nearest hospital if symptoms worsen.`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+}
+
+// Save prescription as template
+function savePrescriptionTemplate() {
+    const template = {
+        id: document.getElementById('prescriptionId').textContent,
+        patientName: document.getElementById('rxPatientName').textContent,
+        diagnosis: document.getElementById('rxDiagnosis').textContent,
+        medicines: Array.from(document.querySelectorAll('#medicationTable tbody tr')).map(row => {
+            const cells = row.querySelectorAll('td');
+            return {
+                name: cells[0].textContent,
+                strength: cells[1].textContent,
+                dosage: cells[2].textContent,
+                frequency: cells[3].textContent,
+                days: cells[4].textContent,
+                timing: cells[5].textContent
+            };
+        }),
+        timestamp: new Date().toISOString()
+    };
+
+    // Save to localStorage
+    const templates = JSON.parse(localStorage.getItem('prescriptionTemplates')) || [];
+    templates.push(template);
+    localStorage.setItem('prescriptionTemplates', JSON.stringify(templates));
+
+    showNotification('Prescription saved as template!', 'success');
+}
+
+// Add event listeners for prescription generation
+document.addEventListener('DOMContentLoaded', function() {
+    // Add prescription button to translator
+    const prescriptionBtn = document.createElement('button');
+    prescriptionBtn.className = 'btn btn-primary mt-3';
+    prescriptionBtn.innerHTML = '<i class="fas fa-file-prescription me-2"></i> Generate Prescription';
+    prescriptionBtn.onclick = generatePrescriptionFromTranslation;
+
+    // Add to action buttons section
+    const actionButtons = document.getElementById('actionButtons');
+    if (actionButtons) {
+        actionButtons.appendChild(prescriptionBtn);
+    }
+
+    // Add patient vitals input fields
+    const patientSection = document.querySelector('.patient-info');
+    if (patientSection) {
+        const vitalsHtml = `
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-weight me-2"></i>Weight (kg):</label>
+                    <input type="number" id="inputPatientWeight" class="form-control" 
+                           placeholder="Enter weight" min="1" max="200"
+                           onchange="document.getElementById('rxPatientWeight').textContent = this.value || '--';
+                                    document.getElementById('rxPatientWeight').dataset.set = 'true'">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-heartbeat me-2"></i>Blood Pressure:</label>
+                    <input type="text" id="inputPatientBP" class="form-control" 
+                           placeholder="e.g., 120/80"
+                           onchange="document.getElementById('rxPatientBP').textContent = this.value || '--/--';
+                                    document.getElementById('rxPatientBP').dataset.set = 'true'">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label"><i class="fas fa-thermometer me-2"></i>Temperature (°F):</label>
+                    <input type="number" id="inputPatientTemp" class="form-control" 
+                           placeholder="e.g., 98.6" step="0.1">
+                </div>
+            </div>
+        `;
+        patientSection.insertAdjacentHTML('beforeend', vitalsHtml);
+    }
+});
+
+// Initialize prescription page
+function initPrescriptionPage() {
+    // Set current date
+    const today = new Date();
+    document.getElementById('prescriptionDate').textContent = 
+        today.toLocaleDateString('en-IN');
+
+    // Generate initial prescription ID
+    document.getElementById('prescriptionId').textContent = 
+        'RX-' + today.getFullYear() + '-001';
+
+    // Load saved templates if any
+    const templates = JSON.parse(localStorage.getItem('prescriptionTemplates')) || [];
+    if (templates.length > 0) {
+        console.log(`${templates.length} prescription templates loaded`);
+    }
+}
+
+// Call initialization
+initPrescriptionPage();
+
+// ======================
+// PRESCRIPTION FUNCTIONS
+// ======================
+
+
+
+// Show prescription page
+function showPrescriptionPage() {
+    generatePrescriptionFromTranslation();
+    showPage('prescription');
+}
+
+function generatePrescriptionFromTranslation() {
+    if (!currentUser) {
+        showNotification('Please login first', 'error');
+        return;
+    }
+
+    // ✅ FIX 1: Get the English medical note from input field
+   
+    // ✅ FIX 2: Get translated text safely
+    const translationText = translatedText ? translatedText.innerText : '';
+    
+    if (!translationText || translationText.includes('Your translated instructions')) {
+        showNotification('Please translate a medical note first', 'error');
+        return;
+    }
+
+    // Generate prescription ID
+    const rxId = 'RX-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+    
+    // Update prescription ID in all places
+    const prescriptionIdElements = document.querySelectorAll('[id*="prescriptionId"], [id*="rxQrId"]');
+    prescriptionIdElements.forEach(el => {
+        if (el.id.includes('prescriptionId') || el.id.includes('rxQrId')) {
+            el.textContent = rxId;
+        }
+    });
+
+    // Set current date
+    const today = new Date();
+    const dateElements = document.querySelectorAll('[id*="prescriptionDate"]');
+    dateElements.forEach(el => {
+        el.textContent = today.toLocaleDateString('en-IN', { 
+            day: '2-digit', 
+            month: '2-digit', 
+            year: 'numeric' 
+        });
+    });
+
+    // Extract patient info from translator form
+    const patientNameValue = patientName ? patientName.value : '';
+    const patientAgeValue = patientAge ? patientAge.value : '';
+    const patientGenderValue = patientGender ? patientGender.value : '';
+    
+    // Update patient info in prescription
+    if (document.getElementById('rxPatientName')) {
+        document.getElementById('rxPatientName').textContent = patientNameValue || 'Not Specified';
+    }
+    if (document.getElementById('rxPatientAge')) {
+        document.getElementById('rxPatientAge').textContent = patientAgeValue || '--';
+    }
+    if (document.getElementById('rxPatientGender')) {
+        document.getElementById('rxPatientGender').textContent = patientGenderValue || '--';
+    }
+    
+    // Update weight and BP if available
+    const patientWeightEl = document.getElementById('patientWeight');
+    const patientBPEl = document.getElementById('patientBP');
+    
+    if (document.getElementById('rxPatientWeight')) {
+        document.getElementById('rxPatientWeight').textContent = 
+            (patientWeightEl && patientWeightEl.value) ? `${patientWeightEl.value} kg` : '60 kg';
+    }
+    
+    if (document.getElementById('rxPatientBP')) {
+        document.getElementById('rxPatientBP').textContent = 
+            (patientBPEl && patientBPEl.value) ? patientBPEl.value : '120/80';
+    }
+
+    // Extract diagnosis from translation
+    const diagnosis = extractDiagnosis(translationText);
+    if (document.getElementById('rxDiagnosis')) {
+        document.getElementById('rxDiagnosis').textContent = diagnosis;
+    }
+    
+    // ✅ FIX 3: Now englishNote is defined!
+   // Get medical note from input field
+const medicalInputElement = document.getElementById('medicalInput');
+const englishNote = medicalInputElement ? medicalInputElement.value : '';
+const symptoms = extractSymptoms(englishNote);
+    if (document.getElementById('rxSymptoms')) {
+        document.getElementById('rxSymptoms').textContent = `Symptoms: ${symptoms}`;
+    }
+
+    // Auto-select medicines based on condition
+    if (typeof medicineDatabase !== 'undefined') {
+        autoSelectMedicines(diagnosis.toLowerCase());
+    }
+
+    // Auto-select investigations
+    autoSelectInvestigations(diagnosis.toLowerCase());
+
+    // Extract instructions from translation
+    const instructions = extractInstructions(translationText);
+    updateInstructionList(instructions);
+
+    // Extract warnings from translation
+    const warnings = extractWarnings(translationText);
+    if (document.getElementById('rxWarnings')) {
+        document.getElementById('rxWarnings').innerHTML = warnings;
+    }
+
+    // Set follow-up date (3 days from today)
+    const nextVisit = new Date(today);
+    nextVisit.setDate(today.getDate() + 3);
+    if (document.getElementById('rxNextVisit')) {
+        document.getElementById('rxNextVisit').textContent = 
+            nextVisit.toLocaleDateString('en-IN', { 
+                weekday: 'long', 
+                day: 'numeric', 
+                month: 'short' 
+            });
+    }
+
+    // Set doctor name from user
+    if (document.getElementById('rxDoctorName')) {
+        document.getElementById('rxDoctorName').textContent = 
+            currentUser.role === 'Medical Doctor' ? `Dr. ${currentUser.name}` : `HCW ${currentUser.name}`;
+    }
+    
+    if (document.getElementById('rxRegNo')) {
+        document.getElementById('rxRegNo').textContent = 
+            currentUser.role === 'Medical Doctor' ? 'MH-' + Math.floor(Math.random() * 10000) : 'ASHC-' + currentUser.username.toUpperCase();
+    }
+
+    // Update verification
+    if (document.getElementById('rxVerification')) {
+        document.getElementById('rxVerification').textContent = 
+            `Digitally signed by ${currentUser.name} | ${today.toLocaleTimeString()}`;
+    }
+
+    // Generate QR code placeholder
+    if (document.getElementById('qrCodePlaceholder')) {
+        generateQRPlaceholder(rxId);
+    }
+
+    // Show prescription page
+    showPage('prescription');
+
+    // Update preview
+    if (document.getElementById('prescriptionPreview')) {
+        updatePrescriptionPreview();
+    }
+
+    showNotification('Prescription generated successfully!', 'success');
+}
+    // Set prescription ID
+    const rxId = 'RX-' + new Date().getFullYear() + '-' + String(translationsHistory.length + 1).padStart(3, '0');
+    document.getElementById('prescriptionId').textContent = rxId;
+
+    // Set date
+    const today = new Date();
+    document.getElementById('prescriptionDate').textContent = 
+        today.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+    // Set patient info
+    document.getElementById('rxPatientName').textContent = 
+        patientName.value || 'Not Specified';
+    document.getElementById('rxPatientAge').textContent = 
+        patientAge.value || '--';
+    document.getElementById('rxPatientGender').textContent = 
+        patientGender.value || '--';
+    document.getElementById('rxPatientWeight').textContent = '60'; // Default
+
+    // Extract diagnosis
+    const diagnosis = extractDiagnosis(translatedText.innerText);
+    document.getElementById('rxDiagnosis').textContent = diagnosis;
+
+    // Extract symptoms
+    const symptoms = extractSymptoms(medicalInput.value);
+    document.getElementById('rxSymptoms').textContent = `Symptoms: ${symptoms}`;
+
+    // Auto-select medicines
+    autoSelectMedicines(diagnosis.toLowerCase());
+
+    // Extract instructions
+    const instructions = extractInstructions(translatedText.innerText);
+    updateInstructionList(instructions);
+
+    // Extract warnings
+    const warnings = extractWarnings(translatedText.innerText);
+    document.getElementById('rxWarnings').innerHTML = warnings;
+
+    // Set doctor name
+    document.getElementById('rxDoctorName').textContent = 
+        currentUser ? currentUser.name : 'Healthcare Provider';
+
+    // Generate QR placeholder
+    document.getElementById('qrCodePlaceholder').innerHTML = `
+        <i class="fas fa-qrcode fa-3x mb-2 text-primary"></i>
+        <p class="mb-1">Prescription ID:</p>
+        <p class="fw-bold">${rxId}</p>
+        <small class="text-muted">Scan to verify</small>
+    `;
+
+// Extract diagnosis
+function extractDiagnosis(text) {
+    const lines = text.split('\n');
+    for (const line of lines) {
+        if (line.includes('CONDITION:')) {
+            return line.split('CONDITION:')[1]?.trim() || 'General Condition';
+        }
+    }
+    return 'General Medical Condition';
+}
+
+// Extract symptoms
+function extractSymptoms(text) {
+    if (text.includes('Symptoms:')) {
+        const match = text.match(/Symptoms:\s*(.+)/i);
+        return match ? match[1].trim() : 'Not specified';
+    }
+    return 'Not specified';
+}
+
+// Auto-select medicines
+function autoSelectMedicines(diagnosis) {
+    const medicationBody = document.getElementById('medicationBody');
+    medicationBody.innerHTML = '';
+
+    let selectedMeds = [];
+
+    if (diagnosis.includes('fever')) {
+        selectedMeds = medicineDatabase.fever;
+    } else if (diagnosis.includes('cough')) {
+        selectedMeds = medicineDatabase.cough;
+    } else if (diagnosis.includes('infection')) {
+        selectedMeds = medicineDatabase.infection;
+    } else {
+        selectedMeds = medicineDatabase.fever.slice(0, 1); // Default
+    }
+
+    // Add ORS for stomach issues
+    if (diagnosis.includes('gastro') || diagnosis.includes('diarr')) {
+        selectedMeds.push({
+            name: 'ORS Solution',
+            strength: 'Sachet',
+            dosage: '1 sachet in 1L',
+            frequency: 'As needed',
+            days: 'Until recovery'
+        });
+    }
+
+    // Add multivitamin
+    selectedMeds.push({
+        name: 'Multivitamin',
+        strength: 'Tablet',
+        dosage: '1 tablet',
+        frequency: 'Once daily',
+        days: '30'
+    });
+
+    // Add to table
+    selectedMeds.forEach(med => {
+        const row = `
+            <tr>
+                <td>${med.name}</td>
+                <td>${med.strength}</td>
+                <td>${med.dosage}</td>
+                <td>${med.frequency}</td>
+                <td>${med.days}</td>
+            </tr>
+        `;
+        medicationBody.innerHTML += row;
+    });
+}
+
+// Extract instructions
+function extractInstructions(text) {
+    const lines = text.split('\n');
+    const instructions = [];
+    let capture = false;
+
+    for (const line of lines) {
+        if (line.includes('क्या करें:') || line.includes('DO THIS:')) {
+            capture = true;
+            continue;
+        }
+        if (capture && line.trim() && !line.includes('चेतावनी')) {
+            instructions.push(line.replace('•', '').trim());
+        }
+        if (line.includes('चेतावनी')) break;
+    }
+
+    return instructions.length > 0 ? instructions : ['Take medicines as directed', 'Get adequate rest'];
+}
+
+// Update instruction list
+function updateInstructionList(instructions) {
+    const list = document.getElementById('rxInstructionList');
+    list.innerHTML = '';
+
+    instructions.forEach(instruction => {
+        list.innerHTML += `<li>${instruction}</li>`;
+    });
+}
+
+// Extract warnings
+function extractWarnings(text) {
+    const lines = text.split('\n');
+    const warnings = [];
+    let capture = false;
+
+    for (const line of lines) {
+        if (line.includes('चेतावनी') || line.includes('WARNING')) {
+            capture = true;
+            continue;
+        }
+        if (capture && line.trim()) {
+            warnings.push(line.replace('•', '').trim());
+        }
+    }
+
+    if (warnings.length > 0) {
+        return 'Return immediately if:<br>' + warnings.map(w => `<strong>• ${w}</strong>`).join('<br>');
+    }
+
+    return 'Return if: High fever, difficulty breathing, or severe pain.';
+}
+
+// Print prescription
+function printPrescription() {
+    window.print();
+}
+
+// Download prescription
+function downloadPrescription() {
+    const prescriptionData = {
+        patient: document.getElementById('rxPatientName').textContent,
+        diagnosis: document.getElementById('rxDiagnosis').textContent,
+        date: document.getElementById('prescriptionDate').textContent,
+        id: document.getElementById('prescriptionId').textContent
+    };
+
+    const dataStr = JSON.stringify(prescriptionData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = 'prescription.json';
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+
+    showNotification('Prescription data downloaded', 'success');
+}
+
+// Send SMS
+function sendPrescriptionSMS() {
+    const patientName = document.getElementById('rxPatientName').textContent;
+    const diagnosis = document.getElementById('rxDiagnosis').textContent;
+    const rxId = document.getElementById('prescriptionId').textContent;
+
+    const smsText = `Aarogya-Sahayak Prescription
+Patient: ${patientName}
+Diagnosis: ${diagnosis}
+RX ID: ${rxId}
+Show to pharmacist.`;
+
+    const phone = prompt('Enter patient phone number:');
+    if (phone) {
+        const smsLink = `sms:${phone}?body=${encodeURIComponent(smsText)}`;
+        window.location.href = smsLink;
+    }
+}
+
+// Share via WhatsApp
+function sharePrescriptionWhatsApp() {
+    const patientName = document.getElementById('rxPatientName').textContent;
+    const diagnosis = document.getElementById('rxDiagnosis').textContent;
+    const rxId = document.getElementById('prescriptionId').textContent;
+
+    const message = `🏥 *Aarogya-Sahayak Prescription*
+    
+*Patient:* ${patientName}
+*Diagnosis:* ${diagnosis}
+*Prescription ID:* ${rxId}
+*Instructions:*
+- Show to pharmacist
+- Keep original
+- Complete course
+*Valid for 30 days*`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+}
+
+// Add this function to extract vitals from medical text
+function extractVitalsFromMedicalNote(medicalText) {
+    const vitals = {
+        weight: null,
+        bp: null,
+        temperature: null
+    };
+
+    const text = medicalText.toLowerCase();
+
+    // Extract weight (patterns like "60 kg", "70kg", "weight: 65", "wt 55")
+    const weightPatterns = [
+        /weight\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:kg|kgs)?/i,
+        /wt\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:kg|kgs)?/i,
+        /(\d+(?:\.\d+)?)\s*kg\s*(?:weight)?/i,
+        /(\d+(?:\.\d+)?)\s*kgs?\s*(?:body\s*weight)?/i
+    ];
+
+    // Extract blood pressure (patterns like "120/80", "BP 140/90", "blood pressure 130/85")
+    const bpPatterns = [
+        /blood\s*pressure\s*[:]?\s*(\d{2,3}\s*\/\s*\d{2,3})/i,
+        /bp\s*[:]?\s*(\d{2,3}\s*\/\s*\d{2,3})/i,
+        /(\d{2,3}\s*\/\s*\d{2,3})\s*(?:mmhg|mmHg)?/i,
+        /(\d{2,3}\/\d{2,3})\s*(?:blood\s*pressure)?/i
+    ];
+
+    // Extract temperature (patterns like "98.6°F", "100 F", "temperature 101.5")
+    const tempPatterns = [
+        /temperature\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:°?F|fahrenheit)?/i,
+        /temp\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:°?F|fahrenheit)?/i,
+        /(\d+(?:\.\d+)?)\s*(?:°?F|fahrenheit)\s*(?:temperature)?/i,
+        /fever\s*[:]?\s*(\d+(?:\.\d+)?)\s*(?:°?F)?/i
+    ];
+
+    // Try to extract weight
+    for (const pattern of weightPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+            vitals.weight = match[1];
+            break;
+        }
+    }
+
+    // Try to extract blood pressure
+    for (const pattern of bpPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+            vitals.bp = match[1].replace(/\s/g, ''); // Remove spaces
+            break;
+        }
+    }
+
+    // Try to extract temperature
+    for (const pattern of tempPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+            vitals.temperature = match[1];
+            break;
+        }
+    }
+
+    return vitals;
+}
+
+function syncAllVitalsToPrescription() {
+    // Get values from translator form
+    const name = document.getElementById('patientName').value.trim();
+    const age = document.getElementById('patientAge').value;
+    const gender = document.getElementById('patientGender').value;
+    const weight = document.getElementById('patientWeight').value;
+    const bp = document.getElementById('patientBP').value;
+    const temp = document.getElementById('patientTemp').value;
+
+    // Update prescription with all vitals
+    const patientData = {
+        name: name || 'Not Specified',
+        age: age || '--',
+        gender: gender || '--',
+        weight: weight || '60',
+        bp: bp || '120/80',
+        temp: temp || '98.6'
+    };
+
+    // Update ALL prescription sections
+    updateVitalsInAllPrescriptions(patientData);
+
+    return patientData;
+}
+
+function updateVitalsInAllPrescriptions(data) {
+    // Update main prescription page (prescriptionGeneratorPage)
+    document.getElementById('rxPatientName').textContent = data.name;
+    document.getElementById('rxPatientAge').textContent = data.age;
+    document.getElementById('rxPatientGender').textContent = data.gender;
+    document.getElementById('rxPatientWeight').textContent = `${data.weight} kg`;
+    document.getElementById('rxPatientBP').textContent = data.bp;
+
+    // Also update any temperature display if available
+    const tempElement = document.getElementById('rxPatientTemp');
+    if (tempElement) {
+        tempElement.textContent = `${data.temp}°F`;
+    }
+
+    // Update simple prescription page
+    document.getElementById('prescriptionPatientName').textContent = data.name;
+    document.getElementById('prescriptionPatientAge').textContent = data.age;
+    document.getElementById('prescriptionPatientGender').textContent = data.gender;
+
+    // Add temperature to diagnosis section if high
+    if (parseFloat(data.temp) > 100) {
+        const diagnosisElement = document.getElementById('rxDiagnosis');
+        if (diagnosisElement) {
+            const currentText = diagnosisElement.textContent;
+            if (!currentText.includes('Fever')) {
+                diagnosisElement.textContent = `${currentText} (Fever: ${data.temp}°F)`;
+            }
+        }
+    }
+}
+
+// Add this function for smart vital suggestions
+function suggestVitalsBasedOnCondition(medicalText) {
+    const text = medicalText.toLowerCase();
+    const suggestions = {};
+
+    // Suggest weight based on age if mentioned
+    const ageMatch = medicalText.match(/(\d+)\s*year/);
+    if (ageMatch) {
+        const age = parseInt(ageMatch[1]);
+        if (age <= 5) suggestions.weight = '15-20';
+        else if (age <= 12) suggestions.weight = '25-40';
+        else if (age <= 18) suggestions.weight = '45-60';
+        else if (age <= 40) suggestions.weight = '60-75';
+        else if (age <= 60) suggestions.weight = '65-80';
+        else suggestions.weight = '55-70';
+    }
+
+    // Suggest BP based on conditions
+    if (text.includes('hypertension') || text.includes('high bp') || text.includes('high blood pressure')) {
+        suggestions.bp = '140/90';
+    } else if (text.includes('hypotension') || text.includes('low bp') || text.includes('low blood pressure')) {
+        suggestions.bp = '90/60';
+    } else {
+        suggestions.bp = '120/80';
+    }
+
+    // Suggest temperature based on symptoms
+    if (text.includes('fever') || text.includes('high temp') || text.includes('temperature')) {
+        const feverMatch = text.match(/(\d+(?:\.\d+)?)\s*(?:°?F)/);
+        if (feverMatch) {
+            suggestions.temperature = feverMatch[1];
+        } else if (text.includes('high fever') || text.includes('severe fever')) {
+            suggestions.temperature = '102.5';
+        } else if (text.includes('mild fever')) {
+            suggestions.temperature = '100.5';
+        } else {
+            suggestions.temperature = '101.0';
+        }
+    } else {
+        suggestions.temperature = '98.6';
+    }
+
+    return suggestions;
+}
+
+
+
+    // 1. Sync all patient vitals
+    const patientData = syncAllVitalsToPrescription();
+
+    // 2. If vitals are missing, try to extract from medical note
+    if (!patientData.weight || patientData.weight === '60') {
+    
+const medicalInputElement = document.getElementById('medicalInput');
+const englishNoteText = medicalInputElement ? medicalInputElement.value : '';
+const extractedVitals = extractVitalsFromMedicalNote(englishNoteText);
+        if (extractedVitals.weight) {
+            patientData.weight = extractedVitals.weight;
+            document.getElementById('patientWeight').value = extractedVitals.weight;
+        }
+    }
+
+    
+
+    // 4. Update prescription with extracted vitals
+    document.getElementById('rxPatientWeight').textContent = `${patientData.weight} kg`;
+    document.getElementById('rxPatientBP').textContent = patientData.bp;
+
+    // 5. Add temperature to diagnosis if it's a fever
+    if (parseFloat(patientData.temp) > 100) {
+        const diagnosis = document.getElementById('rxDiagnosis').textContent;
+        if (!diagnosis.includes('Fever')) {
+            document.getElementById('rxDiagnosis').textContent = `${diagnosis} (Temperature: ${patientData.temp}°F)`;
+        }
+    }
+
+    // 6. Show warning if vitals are abnormal
+    if (parseFloat(patientData.temp) > 100) {
+        const warnings = document.getElementById('rxWarnings');
+        if (warnings && !warnings.innerHTML.includes('fever')) {
+            warnings.innerHTML += `<br><strong>• Monitor temperature: Currently ${patientData.temp}°F</strong>`;
+        }
+    }
+
+    // 7. Show prescription page
+    showPage('prescription');
+    showNotification('Prescription generated with vital signs!', 'success');
+
+function generatePrescriptionWithAutoFill() {
+    // First sync all patient data
+    syncPatientDataToPrescription();
+
+    // Then generate the prescription
+    generatePrescription();
+
+    // Show prescription page
+    showPage('prescription');
+}
+
+
+// Firebase Auth Functions
+async function firebaseLogin(email, password) {
+    try {
+        const userCredential = await auth.signInWithEmailAndPassword(email, password);
+        return {
+            success: true,
+            user: userCredential.user
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Save Translation to Firestore
+async function saveTranslationToFirestore(translationData) {
+    try {
+        const docRef = await db.collection('translations').add({
+            ...translationData,
+            userId: auth.currentUser.uid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return {
+            success: true,
+            id: docRef.id
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Get User Translations
+async function getUserTranslations() {
+    try {
+        const snapshot = await db.collection('translations')
+            .where('userId', '==', auth.currentUser.uid)
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        const translations = [];
+        snapshot.forEach(doc => {
+            translations.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
+        return {
+            success: true,
+            data: translations
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Add error handling
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error("Global error:", message, "at", source, "line", lineno);
+    return true;
+};
+
+// Check if all required elements exist
+function validateRequiredElements() {
+    const requiredElements = [
+        'medicalInput',
+        'translatedText',
+        'patientName',
+        'patientAge',
+        'patientGender'
+    ];
+    
+    requiredElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (!element) {
+            console.warn(`Element with id "${id}" not found`);
+        }
+    });
+}
+
+// Call this after DOM loads
+document.addEventListener('DOMContentLoaded', validateRequiredElements);
+
+// Test Firebase Connection
+async function testFirebase() {
+    console.log("Testing Firebase connection...");
+    
+    try {
+        // Test 1: Check Firebase services
+        console.log("Firebase Auth:", auth ? "✅ Available" : "❌ Not available");
+        console.log("Firebase Firestore:", db ? "✅ Available" : "❌ Not available");
+        console.log("Current User:", currentUser ? currentUser.email : "❌ No user");
+        
+        // Test 2: Simple Firestore write
+        if (currentUser && currentUser.uid) {
+            const testRef = db.collection('test').doc('connection_test');
+            await testRef.set({
+                test: 'Firebase connection test',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                userId: currentUser.uid
+            });
+            console.log("✅ Firestore write successful");
+            
+            // Test 3: Simple Firestore read
+            const doc = await testRef.get();
+            console.log("✅ Firestore read successful:", doc.exists ? "Document exists" : "Document not found");
+            
+            showNotification('Firebase connection test successful!', 'success');
+        } else {
+            console.log("⚠️ No user logged in, skipping Firestore tests");
+            showNotification('Please login first to test Firebase', 'info');
+        }
+        
+    } catch (error) {
+        console.error("❌ Firebase test failed:", error);
+        showNotification('Firebase test failed: ' + error.message, 'error');
+    }
+}
+
+// ======================
+// PRESCRIPTION TO TRANSLATION CONVERTER
+// ======================
+
+function generateTranslationFromPrescription(prescriptionData) {
+    const {
+        patientName,
+        patientAge,
+        patientGender,
+        diagnosis,
+        symptoms,
+        vitals,
+        medications,
+        instructions,
+        warnings,
+        language = 'Hindi'
+    } = prescriptionData;
+    
+    // Language templates
+    const translationTemplates = {
+        'Hindi': {
+            diagnosis: 'रोग निदान',
+            symptoms: 'लक्षण',
+            medications: 'दवाएं',
+            dosage: 'मात्रा',
+            frequency: 'आवृत्ति',
+            duration: 'अवधि',
+            instructions: 'निर्देश',
+            warnings: 'चेतावनी',
+            vitals: 'महत्वपूर्ण संकेत'
+        },
+        'Telugu': {
+            diagnosis: 'రోగ నిర్ధారణ',
+            symptoms: 'లక్షణాలు',
+            medications: 'మందులు',
+            dosage: 'మోతాదు',
+            frequency: 'తరచుదనం',
+            duration: 'కాలం',
+            instructions: 'సూచనలు',
+            warnings: 'హెచ్చరికలు',
+            vitals: 'ముఖ్యమైన సంకేతాలు'
+        },
+        'Tamil': {
+            diagnosis: 'நோய் கண்டறிதல்',
+            symptoms: 'அறிகுறிகள்',
+            medications: 'மருந்துகள்',
+            dosage: 'அளவு',
+            frequency: 'அதிர்வெண்',
+            duration: 'காலம்',
+            instructions: 'வழிமுறைகள்',
+            warnings: 'எச்சரிக்கைகள்',
+            vitals: 'முக்கிய அறிகுறிகள்'
+        }
+    };
+    
+    const template = translationTemplates[language] || translationTemplates['Hindi'];
+    
+    // Build translated text
+    let translatedText = `CONDITION: ${diagnosis}\n\n`;
+    
+    // Add symptoms if available
+    if (symptoms) {
+        translatedText += `${template.symptoms}: ${symptoms}\n\n`;
+    }
+    
+    // Add vitals if available
+    if (vitals) {
+        translatedText += `${template.vitals}:\n`;
+        if (vitals.weight) translatedText += `• ${template.weight}: ${vitals.weight} kg\n`;
+        if (vitals.bloodPressure) translatedText += `• ${template.bp}: ${vitals.bloodPressure}\n`;
+        if (vitals.temperature) translatedText += `• ${template.temperature}: ${vitals.temperature}°F\n`;
+        translatedText += '\n';
+    }
+    
+    // Add medications
+    if (medications && medications.length > 0) {
+        translatedText += `${template.medications}:\n`;
+        medications.forEach(med => {
+            translatedText += `• ${med.name} (${med.strength}): ${med.dosage} ${med.frequency} ${med.days ? `for ${med.days} days` : ''}\n`;
+        });
+        translatedText += '\n';
+    }
+    
+    // Add instructions
+    if (instructions && instructions.length > 0) {
+        translatedText += `${template.instructions}:\n`;
+        instructions.forEach(instruction => {
+            translatedText += `• ${instruction}\n`;
+        });
+        translatedText += '\n';
+    }
+    
+    // Add warnings
+    if (warnings && warnings.length > 0) {
+        translatedText += `${template.warnings}:\n`;
+        warnings.forEach(warning => {
+            translatedText += `• ${warning}\n`;
+        });
+    }
+    
+    return translatedText;
+}
+
+// ======================
+// AUTO-UPDATE TRANSLATION WHEN PRESCRIPTION CHANGES
+// ======================
+
+function setupPrescriptionAutoTranslation() {
+    // Monitor prescription form changes
+    const prescriptionForm = document.querySelector('.prescription-container');
+    if (prescriptionForm) {
+        // Watch for medication changes
+        const medicationTable = document.getElementById('medicationTable');
+        if (medicationTable) {
+            medicationTable.addEventListener('input', updateTranslationFromPrescription);
+        }
+        
+        // Watch for instruction changes
+        const instructionList = document.getElementById('rxInstructionList');
+        if (instructionList) {
+            instructionList.addEventListener('input', updateTranslationFromPrescription);
+        }
+        
+        // Watch for diagnosis changes
+        const diagnosisInput = document.getElementById('rxDiagnosis');
+        if (diagnosisInput) {
+            diagnosisInput.addEventListener('input', updateTranslationFromPrescription);
+        }
+    }
+}
+
+function updateTranslationFromPrescription() {
+    // Get current prescription data
+    const prescriptionData = collectPrescriptionData();
+    
+    // Get selected language
+    const language = document.getElementById('languageSelect')?.value || 'Hindi';
+    
+    // Generate translation
+    const translatedText = generateTranslationFromPrescription({
+        ...prescriptionData,
+        language: language
+    });
+    
+    // Update the translation display
+    if (translatedText && document.getElementById('translatedText')) {
+        document.getElementById('translatedText').innerText = translatedText;
+        
+        // Format and display
+        const formattedText = formatMedicalText(translatedText);
+        document.getElementById('translatedText').innerHTML = formattedText;
+        
+        showNotification('Translation updated from prescription', 'info');
+    }
+}
+
+function collectPrescriptionData() {
+    return {
+        diagnosis: document.getElementById('rxDiagnosis')?.textContent || '',
+        symptoms: document.getElementById('rxSymptoms')?.textContent?.replace('Symptoms: ', '') || '',
+        vitals: {
+            weight: document.getElementById('rxPatientWeight')?.textContent?.replace(' kg', '') || '',
+            bloodPressure: document.getElementById('rxPatientBP')?.textContent || '',
+            temperature: extractTemperatureFromText(document.getElementById('rxDiagnosis')?.textContent || '')
+        },
+        medications: collectMedicationsFromTable(),
+        instructions: collectInstructionsFromList(),
+        warnings: collectWarningsFromDisplay()
+    };
+}
+
+function collectMedicationsFromTable() {
+    const medications = [];
+    const rows = document.querySelectorAll('#medicationTable tbody tr');
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 5) {
+            medications.push({
+                name: cells[0]?.textContent || '',
+                strength: cells[1]?.textContent || '',
+                dosage: cells[2]?.textContent || '',
+                frequency: cells[3]?.textContent || '',
+                days: cells[4]?.textContent || '',
+                timing: cells[5]?.textContent || ''
+            });
+        }
+    });
+    
+    return medications;
+}
+
+function collectInstructionsFromList() {
+    const instructions = [];
+    const items = document.querySelectorAll('#rxInstructionList li');
+    
+    items.forEach(item => {
+        instructions.push(item.textContent.trim());
+    });
+    
+    return instructions;
+}
+
+function collectWarningsFromDisplay() {
+    const warnings = [];
+    const warningElement = document.getElementById('rxWarnings');
+    
+    if (warningElement) {
+        // Extract text from warning element
+        const warningText = warningElement.textContent || warningElement.innerText;
+        if (warningText.includes('Return immediately if:')) {
+            const warningLines = warningText.split('\n').slice(1); // Skip first line
+            warningLines.forEach(line => {
+                if (line.trim()) warnings.push(line.replace('•', '').trim());
+            });
+        }
+    }
+    
+    return warnings;
+}
+
+function extractTemperatureFromText(text) {
+    const tempMatch = text.match(/(\d+(\.\d+)?)\s*°?F/i);
+    return tempMatch ? tempMatch[1] : null;
+}
+
+    </script>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
